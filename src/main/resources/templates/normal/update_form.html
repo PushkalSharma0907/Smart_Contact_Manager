@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{normal/base :: layout(~{::section})}">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<section>
+		
+		<div class="container mt-3">
+    <h2 class="mb-4  text-center">Update Your Contact</h2>
+    <form th:action="@{/user/process-update}" th:object="${contact}" method="post" enctype="multipart/form-data">
+     <input type="hidden" th:field="*{cid}" />
+    
+       <div th:if="${msg1}" class="alert alert-success" role="alert" th:text="${msg1}"></div>
+              <div th:if="${msg2}" class="alert alert-danger " role="alert" th:text="${msg2}" ></div>
+       
+    
+
+        <!-- First Name -->
+        <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="fa fa-user"></i></span>
+            <input  type="text" th:field="*{name}" class="form-control" placeholder="Enter Full Name" required>
+        </div>
+
+        <!-- Second Name -->
+        <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="fa fa-user"></i></span>
+            <input type="text" th:field="*{secondName}" class="form-control" placeholder="Enter Nick Name">
+        </div>
+
+        <!-- Work -->
+        <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="fa fa-briefcase"></i></span>
+            <input type="text" th:field="*{work}" class="form-control" placeholder="Enter work">
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+            <input type="email" th:field="*{email}" class="form-control" placeholder="Enter email" required>
+        </div>
+
+        <!-- Phone -->
+        <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="fa fa-phone"></i></span>
+            <input min="10" max="14" type="text" th:field="*{phone}" class="form-control" placeholder="Enter phone number" required>
+        </div>
+
+        <!-- Image -->
+        <div class="text-center">
+        <img th:src="@{'/images/' + ${contact.image}}" alt="Profile Image" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px;">
+        </div>
+        <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="fa fa-image"></i></span>
+            <input type="file" name="profileImage" class="form-control">
+        </div>
+
+        <!-- Description -->
+        <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="fa fa-align-left"></i></span>
+            <textarea th:field="*{description}" class="form-control" rows="4" placeholder="Enter description"></textarea>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn btn-primary">Save Contact</button>
+    </form>
+</div>
+	
+	<script src="https://cdn.tiny.cloud/1/797sz2klftt8xj8392jbfwj40r6ocx5locvxnrco7o02n01e/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
+
+<!-- Place the following <script> and <textarea> tags your HTML's <body> -->
+<script>
+  tinymce.init({
+    selector: 'textarea',
+    plugins: [
+      // Core editing features
+      'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
+      // Your account includes a free trial of TinyMCE premium features
+      // Try the most popular premium features until Jan 9, 2026:
+      'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'advtemplate', 'ai', 'uploadcare', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown','importword', 'exportword', 'exportpdf'
+    ],
+    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography uploadcare | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+    tinycomments_mode: 'embedded',
+    tinycomments_author: 'Author name',
+    mergetags_list: [
+      { value: 'First.Name', title: 'First Name' },
+      { value: 'Email', title: 'Email' },
+    ],
+    ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
+    uploadcare_public_key: '0f425928b00a057284d8',
+  });
+</script>	
+		
+</section>
+
+
+</body>
+</html>

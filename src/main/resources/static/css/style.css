@@ -1,0 +1,139 @@
+body{
+	background-color: #c0c0c0;
+}
+
+.bg-primary {
+	background-color: #ff80c0!important;
+}
+
+.banner {
+  color: white;
+  height: 93vh;
+  width: 100%;
+  background: linear-gradient(rgba(0,0,0,.3), rgba(0,0,0,.3)), url('../images/banner.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.card-header {
+	background-color: #FFFFFF;
+	color: #000000;
+}
+
+/* Sidebar styling */
+.sidebar {
+  height: 100vh;              /* Full height */
+  background-color: #f8f9fa;  /* Light background */
+  border-right: 1px solid #ddd;
+  padding: 20px;
+  position: fixed;            /* Fix sidebar on left */
+  top: 0;
+  left: 0;
+  width: 250px;
+  overflow-y: auto;           /* Scroll if content exceeds */
+}
+
+/* Sidebar heading */
+.sidebar h4 {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30px;
+  color: #0d6efd;             /* Bootstrap primary color */
+}
+
+/* Sidebar nav links */
+.sidebar {
+	
+  color: #333;
+  font-size: 16px;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin-bottom: 8px;
+
+  
+}
+
+.sidebar.hidden {
+  transform: translateX(-100%); /* Hide sidebar */
+}
+
+.btn-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+
+.fas fa-bars{
+	cursor: pointer;
+	position: absolute;
+	top: 15px;
+	left: 15px;
+	z-index: 1000;
+	
+}
+
+
+.sidebar .nav-link:hover {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+/* Active link */
+.sidebar .nav-link.active {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+/* Main content area */
+.main-content {
+  margin-left: 20%;   /* Push content to right of sidebar */
+  padding: 20px;
+}
+
+.sidebar.hidden + .main-content {
+  margin-left: 0; /* Reset when sidebar hidden */
+}
+
+.my_profile_picture{
+	
+	width: 35px;
+	height: 35px;
+	object-fit: cover;
+	border-radius: 50%;
+	
+}
+
+.search-container{
+	position: relative;
+}
+
+.search-results {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	width: 100%;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	max-height: 200px;
+	overflow-y: auto;
+	z-index: 1000;
+}
+
+.active{
+	
+	background-color: #ff80c0 !important;
+		color: #fff !important;
+}
+
+/* Responsive sidebar for mobile */
+@media (max-width: 768px) {
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    border-right: none;
+  }
+  .main-content {
+    margin-left: 0% !important;
+  }
+}

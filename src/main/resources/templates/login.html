@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout (~{::section})}">
+<head>
+<meta charset="UTF-8">
+<title></title>
+</head>
+<body>
+	<section>
+		<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <!-- Card -->
+            <div class="card shadow">
+                <div class="card-header text-center bg-primary text-white">
+                    <h3>Login</h3>
+                </div>
+                <div class="card-body">
+
+                    <!-- Error message -->
+                    <div th:if="${param.error}" class="alert alert-danger">
+                        Invalid username or password.
+                    </div>
+
+                    <!-- Logout message -->
+                    <div th:if="${param.logout}" class="alert alert-success">
+                        You have been logged out successfully.
+                    </div>
+                    
+                    <div th:if="${param.change}" class="alert alert-success"  th:text="${param.change}">
+                        Password changed successfully. Please login with your new password.
+                       
+                    </div>
+
+                    <!-- Login Form -->
+                    <form th:action="@{/dologin}" method="post">
+                        <div class="form-group mb-3">
+                            <label for="username">Email</label>
+                            <input type="text" id="username" name="username"
+                                   class="form-control" placeholder="Enter email" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password"
+                                   class="form-control" placeholder="Enter password" required>
+                        </div>
+                        <div class=" text-center mb-3">
+                    <a th:href="@{/forgot}">Forgot Password</a>
+                </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Login</button>
+                        </div>
+                    </form>
+                    
+                    <div class="social-buttons-container text-center mt-4">
+                        <p>Or login with:</p>
+                        <a th:href="@{/oauth2/authorization/google}" class="btn btn-danger me-2">
+                            <i class="fab fa-google"></i> Google
+                        </a>
+                    
+                    
+                    </div>
+                    
+ 				</div>
+                <div class="card-footer text-center">
+                    <a th:href="@{/signup}">Don't have an account? Register here</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+		
+	</section>
+
+</body>
+</html>

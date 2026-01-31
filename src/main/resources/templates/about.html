@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="base :: layout(~{::section})">
+  <section style="background-color: #ffffff; min-height: 100vh; padding: 40px 0;">
+    <div class="container">
+
+      <!-- Title -->
+      <h2 class="text-center mb-5">About Smart Contact Manager</h2>
+
+      <!-- Mission Block -->
+      <div class="p-4 mb-4 rounded shadow" style="background-color: #e3f2fd;">
+        <h4>Our Mission</h4>
+        <p>
+          To simplify contact management by providing a secure, user-friendly platform
+          that empowers individuals and teams to stay connected and productive.
+        </p>
+      </div>
+
+      <!-- Vision Block -->
+      <div class="p-4 mb-4 rounded shadow" style="background-color: #fce4ec;">
+        <h4>Our Vision</h4>
+        <p>
+          We envision a world where managing contacts is seamless, intuitive, and
+          integrated with your daily workflow — so you can focus on building meaningful
+          connections.
+        </p>
+      </div>
+
+      <!-- Features Block -->
+      <div class="p-4 mb-4 rounded shadow" style="background-color: #e8f5e9;">
+        <h4 class="mb-3">Key Features</h4>
+        <div class="row text-center">
+          <div class="col-md-4">
+            <i class="fas fa-cloud fa-2x text-primary mb-2"></i>
+            <h6>Cloud Storage</h6>
+            <p>Access your contacts securely from any device.</p>
+          </div>
+          <div class="col-md-4">
+            <i class="fas fa-lock fa-2x text-success mb-2"></i>
+            <h6>Data Security</h6>
+            <p>Your information is protected with modern encryption.</p>
+          </div>
+          <div class="col-md-4">
+            <i class="fas fa-users fa-2x text-info mb-2"></i>
+            <h6>Collaboration</h6>
+            <p>Share and manage contacts with your team.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Closing Block -->
+      <div class="p-4 rounded shadow text-center" style="background-color: #fff3e0;">
+        <p class="text-muted">
+          Smart Contact Manager is more than just an address book — it’s your personal
+          assistant for building stronger connections.
+        </p>
+        <a th:href="@{/user/add-contact}" class="btn btn-primary mt-3">Get Started</a>
+      </div>
+
+    </div>
+  </section>
+</html>

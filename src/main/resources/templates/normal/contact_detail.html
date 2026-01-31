@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{normal/base :: layout(~{::section})}">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<section>
+	<div class="container mt-3">
+		<h2 class="mb-4 text-center">Contact Details</h2>
+		<div class="card" th:if="${contact}">
+			<div class="card-header text-center">
+			<img  th:src="@{'/images/' + ${contact.image}}" alt="Profile Image" class="img-fluid rounded-circle " style="width: 150px; height: 150px;">
+				<h3 class="text-center" th:text="${contact.name} + ' (' + ${contact.secondName} + ')'"></h3>
+			</div>
+			<div class="card-body">
+				<p><strong>Contact ID:</strong><strong th:text="' SCMUSER'+${contact.cid}"></strong></p>
+				<p><strong>Work:</strong> <span th:text="${contact.work}"></span></p>
+				<p><strong>Email:</strong> <span th:text="${contact.email}"></span></p>
+				<p><strong>Phone:</strong> <span th:text="${contact.phone}"></span></p>
+				<p><strong>Description:</strong></p>
+				<p th:text="${contact.description}"></p>
+			</div>
+			
+			<div class="text-center mt-3">
+            <a th:href="@{'/user/show-contacts/'+${currentPage}}" class="btn btn-primary">Back to Contacts</a>
+         </div>
+                 <div class="mt-3 d-flex justify-content-center gap-2">
+            <a  class="btn btn-danger btn-sm"    th:onclick="|deleteContact(${contact.cid}, ${currentPage})|">Delete</a>
+							<a th:href="@{'/user/update-contact/'+${contact.cid}}" class="btn btn-warning btn-sm text-white">Update</a>							
+	</div>
+	
+	
+	
+		</div>
+		
+			<h1 class="text-center mt-3 text-white bg-danger" th:unless="${contact}">You don't have permission to see this contact...</h1>
+			<h1 class="text-center mt-3 text-white bg-danger" th:if="${message}" th:text="${message}"></h1>
+	
+	<script >
+		$(document).ready(function () {
+				$(".item").removeClass("active");
+				$('#contact-link').addClass('active');
+			});
+		
+		</script>
+	
+	
+	</section>
+
+</body>
+</html>

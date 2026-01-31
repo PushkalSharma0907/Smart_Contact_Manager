@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="base :: layout(~{::section})">
+<head>
+<meta charset="UTF-8">
+<title>This is home page</title>
+</head>
+<body>
+<section>
+	 <div class="banner d-flex justify-content-center align-items-center">
+	         <div class="text-center">
+	
+		<h2 class="mt-5">Smart Contact Manager</h2>
+		<p class="lead">Let's manage your contacts with us</p>
+<a th:href="@{/signin}" class="btn bg-primary btn-lg text-white">Get Start</a>		</div>
+		</div>
+		
+		<script >
+		$(document).ready(function () {
+				$(".item").removeClass("active");
+				$('#home-link').addClass('active');
+			});
+		
+		</script>
+		
+		</section>
+
+</body>
+</html>
