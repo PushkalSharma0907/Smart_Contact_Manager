@@ -13,7 +13,9 @@ import com.smart.smartcontactmanager.dao.userRepo;
 import com.smart.smartcontactmanager.entities.contact;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,32 +42,49 @@ public class userController {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	
+	private String resolveEmail(Principal principal) {
+	    if (principal instanceof Authentication) {
+	        Object principalObj = ((Authentication) principal).getPrincipal();
+	        
+	    	//oauth se login ke liye bcoz principal.getName goolge ki id dega , jo hme nhi chahiye, hme email chahiye , isliye authentication se email nikalna padega
+
+	        if (principalObj instanceof DefaultOAuth2User) {
+	            // OAuth2 login case
+	            DefaultOAuth2User oauthUser = (DefaultOAuth2User) principalObj;
+	            return oauthUser.getAttribute("email");
+	        } else if (principalObj instanceof org.springframework.security.core.userdetails.User) {
+	            // Direct form login case
+	            return ((org.springframework.security.core.userdetails.User) principalObj).getUsername();
+	        }
+	    }
+	    return principal.getName(); // fallback
+	}
+
+	
 	// method to add common data to response
 	@ModelAttribute
 	public void addCommonData(Model model, Principal principal) {
-		String userName = principal.getName();
-		System.out.println("USERNAME " + userName);
+		String email = resolveEmail(principal);   // ✅ works for both direct + OAuth2
+	    user user = userRepo.getUserByEmail(email);
+	    model.addAttribute("user", user);
 
-		// get the user using username(Email)
-		user user = userRepo.getUserByUserName(userName);
-		System.out.println("USER " + user);
-
-		model.addAttribute("user", user);
 	}
 	
 	// dashboard home
 	@RequestMapping("/index")
 	public String dashboard(Model model , Principal principal) {
-		model.addAttribute("title", "User Dashboard");
-		
-		user user = this.userRepo.getUserByUserName(principal.getName());
-		List<contact> contacts = this.contactRepo.findContactsByUserId(user.getId(), null).getContent();
-		
-		model.addAttribute("noOfContact", contacts.size());
-		
-		
-		return "normal/user_dashboard";
+		 String email = resolveEmail(principal);
+		    user user = userRepo.getUserByEmail(email);
+
+		    List<contact> contacts = contactRepo.findContactsByUserId(user.getId(), null).getContent();
+		    model.addAttribute("noOfContact", contacts.size());
+		    model.addAttribute("title", "User Dashboard");
+
+		    return "normal/user_dashboard";
+
 	}
+	
+	
 	
 	// open add form handler
 	@GetMapping("/add-contact")	
@@ -82,8 +101,8 @@ public class userController {
 	                                    Principal principal,
 	                                    Model model) {
 	    try {
-	        String name = principal.getName();
-	        user user = this.userRepo.getUserByUserName(name);
+	    	 String email = resolveEmail(principal);
+			    user user = userRepo.getUserByEmail(email);
 
 	        // processing and uploading file
 	        if (multi.isEmpty()) {
@@ -124,8 +143,8 @@ public class userController {
 	@GetMapping("/show-contacts/{pageNo}")
 	public String showContacts(@PathVariable("pageNo") Integer pageNo , Model model, Principal principal) {
 		model.addAttribute("title", "Show User Contacts");
-		String userName = principal.getName();
-		user user = this.userRepo.getUserByUserName(userName);
+		 String email = resolveEmail(principal);
+		    user user = userRepo.getUserByEmail(email);
 		
 		
 		//current page - pageNo
@@ -151,8 +170,8 @@ public class userController {
 		
 		
 
-		String userName = principal.getName();
-		user user = this.userRepo.getUserByUserName(userName);
+		 String email = resolveEmail(principal);
+		    user user = userRepo.getUserByEmail(email);
 		
 		if (contact == null) {
 			model.addAttribute("title", "Contact Not Found");
@@ -179,8 +198,8 @@ public class userController {
 		
 		
 		
-		String userName = principal.getName();
-		user user = this.userRepo.getUserByUserName(userName);
+		 String email = resolveEmail(principal);
+		    user user = userRepo.getUserByEmail(email);
 		
 		if (contact == null) {
 			model.addAttribute("title", "Contact Not Found");
@@ -203,8 +222,8 @@ public class userController {
 
 		contact contact = this.contactRepo.findById(cid).get();
 
-		String userName = principal.getName();
-		user user = this.userRepo.getUserByUserName(userName);
+		 String email = resolveEmail(principal);
+		    user user = userRepo.getUserByEmail(email);
 
 		// check whether the contact belongs to the user or not
 		if (user.getId() == contact.getUser().getId()) {
@@ -262,8 +281,8 @@ public class userController {
 				contact.setImage(oldContact.getImage());
 			}
 
-			String userName = principal.getName();
-			user user = this.userRepo.getUserByUserName(userName);
+			 String email = resolveEmail(principal);
+			    user user = userRepo.getUserByEmail(email);
 			contact.setUser(user);
 
 			this.contactRepo.save(contact);
@@ -288,7 +307,8 @@ public class userController {
 	public String updateProfile(Model model , Principal principal) {
 		model.addAttribute("title", "Update Profile");
 		
-		user user = this.userRepo.getUserByUserName(principal.getName());
+		 String email = resolveEmail(principal);
+		    user user = userRepo.getUserByEmail(email);
 		model.addAttribute("user", user);
 		
 		return "normal/update_profile";
@@ -349,8 +369,8 @@ public class userController {
 		System.out.println("OLD PASSWORD " + oldPassword);
 		System.out.println("NEW PASSWORD " + newPassword);
 
-		String userName = principal.getName();
-		user user = this.userRepo.getUserByUserName(userName);
+		 String email = resolveEmail(principal);
+		    user user = userRepo.getUserByEmail(email);
 
 		if (this.passwordEncoder.matches(oldPassword, user.getPassword())) {
 			// change the password

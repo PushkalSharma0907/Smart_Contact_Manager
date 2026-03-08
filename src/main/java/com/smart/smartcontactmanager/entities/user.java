@@ -37,7 +37,7 @@ public class user {
 	private List<contact> contacts = new ArrayList<>();
 	
 	@NotBlank(message="name is required")
-	@Size(min=2,max=20,message="min 2 and max 20 letter is required")
+	@Size(min=2,max=40,message="min 2 and max 20 letter is required")
 	private String name;
 	
 	

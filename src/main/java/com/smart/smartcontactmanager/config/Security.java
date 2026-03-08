@@ -18,22 +18,35 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class Security extends WebSecurityConfigurerAdapter {
-	
-	@Autowired
-	private UserDetailsServiceImpl userDetailsServiceImpl;
+public class Security {
 
-    @Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http.authorizeRequests().antMatchers("/admin/**").hasRole("ADMIN").antMatchers("/user/**").hasRole("USER")
-				.antMatchers("/**").permitAll().and().formLogin().loginPage("/signin")
-				.loginProcessingUrl("/dologin")
-				.defaultSuccessUrl("/user/index").and().csrf()
-				.disable();
-			
-		http.oauth2Login().loginPage("/signin").defaultSuccessUrl("/user/index").userInfoEndpoint()
-				;
-	}
+    @Autowired
+    private UserDetailsServiceImpl userDetailsServiceImpl;
+
+    @Autowired
+    private OAuthSuccessHandler oAuthSuccessHandler;
+    
+   
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .antMatchers("/admin/**").hasRole("ADMIN")
+                .antMatchers("/user/**").hasRole("USER")
+                .antMatchers("/**").permitAll()
+            .and()
+                .formLogin()
+                    .loginPage("/signin")
+                    .loginProcessingUrl("/dologin")
+                    .defaultSuccessUrl("/user/index")
+            .and()
+                .csrf().disable()
+                .oauth2Login()
+                    .loginPage("/signin")
+                    .successHandler(oAuthSuccessHandler);
+
+        return http.build();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -41,20 +54,18 @@ public class Security extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public AuthenticationManager authenticationManagerBean(
-          ) throws Exception {
-        return super.authenticationManagerBean();
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
+        auth.setUserDetailsService(userDetailsServiceImpl);
+        auth.setPasswordEncoder(passwordEncoder());
+        return auth;
     }
-    
+
     @Bean
-	public DaoAuthenticationProvider authenticationProvider() {
-		DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
-		auth.setUserDetailsService(userDetailsServiceImpl);
-		auth.setPasswordEncoder(passwordEncoder());
-		return auth;
-	}
-    
-	public void configure(AuthenticationManagerBuilder auth) throws Exception {
-    	auth.authenticationProvider(authenticationProvider());
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
     }
+
+	
+	
 }
