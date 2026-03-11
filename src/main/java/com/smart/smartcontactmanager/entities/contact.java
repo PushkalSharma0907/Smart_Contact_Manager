@@ -23,10 +23,20 @@ public class contact {
 	private String image;
 	@Column(length = 5000)
 	private String description;
+	private String publicId;
 	
 	
 
 	
+	public String getPublicId() {
+		return publicId;
+	}
+
+	public void setPublicId(String publicId) {
+		this.publicId = publicId;
+	}
+
+
 	@ManyToOne
 	@JsonBackReference
 
@@ -105,7 +115,7 @@ public class contact {
 	}
 
 	public contact(int cid, String name, String secondName, String work, String email, String phone, String image,
-			String description, com.smart.smartcontactmanager.entities.user user) {
+			String description, com.smart.smartcontactmanager.entities.user user , String publicId) {
 		super();
 		this.cid = cid;
 		this.name = name;
@@ -116,6 +126,7 @@ public class contact {
 		this.image = image;
 		this.description = description;
 		this.user = user;
+		this.publicId = publicId;
 	}
 	
 	public contact() {

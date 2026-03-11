@@ -41,7 +41,7 @@
 					<tbody>
 						<tr th:each="contact : ${contacts}">
 							
-							<td><img class="my_profile_picture" alt="profile photo" src="" th:src="@{'/images/'+${contact.image}}"><span  th:text="' '+${contact.name}"></span> </td>
+							<td><img class="my_profile_picture" alt="profile photo" src="" th:src="${contact.image == 'default.png' ? '/images/default.png' : contact.image}"><span  th:text="' '+${contact.name}"></span> </td>
 							<td th:text="${contact.secondName}"></td>
 							
 							<td th:text="${contact.email}"></td>

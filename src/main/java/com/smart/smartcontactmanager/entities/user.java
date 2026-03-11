@@ -40,15 +40,25 @@ public class user {
 	@Size(min=2,max=40,message="min 2 and max 20 letter is required")
 	private String name;
 	
+	private String publicId;
 	
 	
+	
+	public String getPublicId() {
+		return publicId;
+	}
+
+	public void setPublicId(String publicId) {
+		this.publicId = publicId;
+	}
+
 	@Override
 	public String toString() {
 	    return "User [id=" + id + ", name=" + name + ", email=" + email + "]";
 	}
 	
 	public user(int id, String name, String email, String password, String role, boolean enabled, String imageUrl,
-			String about , List<contact> contacts) {
+			String about , List<contact> contacts , String publicId) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -59,6 +69,7 @@ public class user {
 		this.imageUrl = imageUrl;
 		this.about = about;
 		this.contacts = contacts;
+		this.publicId = publicId;
 	}
 	public int getId() {
 		return id;

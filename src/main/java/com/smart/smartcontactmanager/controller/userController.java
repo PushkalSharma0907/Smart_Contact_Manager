@@ -7,7 +7,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.smart.smartcontactmanager.config.CloudinaryConfig;
 import com.smart.smartcontactmanager.dao.ContactRepo;
 import com.smart.smartcontactmanager.dao.userRepo;
 import com.smart.smartcontactmanager.entities.contact;
@@ -41,6 +45,9 @@ public class userController {
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private  Cloudinary cloudinary;
 	
 	private String resolveEmail(Principal principal) {
 	    if (principal instanceof Authentication) {
@@ -114,11 +121,23 @@ public class userController {
 	        	String fname = multi.getOriginalFilename();
 	            contact.setImage(fname);
 
-	            // file upload code
-	            File file = new ClassPathResource("static/images").getFile();
-	            Path path = Paths.get(file.getAbsolutePath() + File.separator + multi.getOriginalFilename());
-	            Files.copy(multi.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-	            System.out.println("Image uploaded successfully");
+	            // file upload code on server
+//	            File file = new ClassPathResource("static/images").getFile();
+//	            Path path = Paths.get(file.getAbsolutePath() + File.separator + multi.getOriginalFilename());
+//	            Files.copy(multi.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+//	            System.out.println("Image uploaded successfully");
+	            
+	            //image upload code on Cloudinary
+	            Map uploadResult = cloudinary.uploader().upload(multi.getBytes(),
+	                    ObjectUtils.asMap("folder", "contacts"));
+
+	            String imageUrl = uploadResult.get("secure_url").toString();
+	            contact.setImage(imageUrl);
+	            contact.setPublicId(uploadResult.get("public_id").toString());
+
+	            System.out.println("Image uploaded successfully to Cloudinary: " + imageUrl);
+
+	            
 	        }
 
 	        // ✅ ye hamesha chalega, chahe file empty ho ya na ho
@@ -231,9 +250,16 @@ public class userController {
 			try {
 				
 			if (!contact.getImage().equals("default.png")) {	
-			File deleteFile = new ClassPathResource("static/images").getFile();
-			File file1 = new File(deleteFile, contact.getImage());
-			file1.delete();}
+//			File deleteFile = new ClassPathResource("static/images").getFile();
+//			File file1 = new File(deleteFile, contact.getImage());
+//			file1.delete();
+			
+				 // ✅ Cloudinary delete
+                String publicId = contact.getPublicId(); // store this in DB at upload time
+                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+                System.out.println("Image deleted from Cloudinary: " + publicId);
+	
+			}
 		} catch (Exception e) {
 			System.out.println("No image found");
 		}
@@ -267,18 +293,39 @@ public class userController {
 			if (!multi.isEmpty()) {
 				if(!oldContact.getImage().equals("default.png")) {
 				// delete old photo
-				File deleteFile = new ClassPathResource("static/images").getFile();
-				File file1 = new File(deleteFile, oldContact.getImage());
-				file1.delete();
+//				File deleteFile = new ClassPathResource("static/images").getFile();
+//				File file1 = new File(deleteFile, oldContact.getImage());
+//				file1.delete();
+					
+					 // ✅ Cloudinary delete
+	                String publicId = oldContact.getPublicId(); 
+	                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+	                System.out.println("Image deleted from Cloudinary: " + publicId);
+	
 				}
 				// update new photo
-				File file = new ClassPathResource("static/images").getFile();
-				Path path = Paths.get(file.getAbsolutePath() + File.separator + multi.getOriginalFilename());
-				Files.copy(multi.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+//				File file = new ClassPathResource("static/images").getFile();
+//				Path path = Paths.get(file.getAbsolutePath() + File.separator + multi.getOriginalFilename());
+//				Files.copy(multi.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+//
+//				contact.setImage(multi.getOriginalFilename());
+				
+				 // upload new photo to Cloudinary
+				Map<String, Object> uploadResult = cloudinary.uploader().upload(
+				        multi.getBytes(),
+				        ObjectUtils.asMap("folder", "contacts")
+				);
 
-				contact.setImage(multi.getOriginalFilename());
+				String imageUrl = uploadResult.get("secure_url").toString();
+				String publicId = uploadResult.get("public_id").toString();
+
+				contact.setImage(imageUrl);     // frontend ke liye
+				contact.setPublicId(publicId);  // delete/update ke liye
+
 			} else {
-				contact.setImage(oldContact.getImage());
+				contact.setImage(oldContact.getImage());       // purani image hi rakho
+			    contact.setPublicId(oldContact.getPublicId()); // purana publicId hi rakho
+
 			}
 
 			 String email = resolveEmail(principal);
@@ -323,22 +370,40 @@ public class userController {
 			
 			if(!multi.isEmpty()) {
 				if(!oldUser.getImageUrl().equals("default.png")) {
-					File file = new ClassPathResource("/static/images").getFile();
-					File delFile = new File(file , oldUser.getImageUrl());
-					delFile.delete();
+//					File file = new ClassPathResource("/static/images").getFile();
+//					File delFile = new File(file , oldUser.getImageUrl());
+//					delFile.delete();
+					
+					// ✅ Cloudinary delete
+					String publicId = oldUser.getPublicId();
+					cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+					System.out.println("Image deleted from Cloudinary: " + publicId);
 				}
 				// update new photo
-				File file = new ClassPathResource("static/images").getFile();
-				String fname = oldUser.getId()+"_" +multi.getOriginalFilename();
-				File f = new File(file , fname);
-				  multi.transferTo(f);
+//				File file = new ClassPathResource("static/images").getFile();
+//				String fname = oldUser.getId()+"_" +multi.getOriginalFilename();
+//				File f = new File(file , fname);
+//				  multi.transferTo(f);
+//				  oldUser.setImageUrl(fname);
+				// upload new photo to Cloudinary
+	            Map<String, Object> uploadResult = cloudinary.uploader().upload(
+	                    multi.getBytes(),
+	                    ObjectUtils.asMap("folder", "profiles")
+	            );
+
+	            String imageUrl = uploadResult.get("secure_url").toString();
+	            String publicId = uploadResult.get("public_id").toString();
+
+	            oldUser.setImageUrl(imageUrl);   // frontend ke liye
+	            oldUser.setPublicId(publicId);   // delete/update ke liye
 
 				
-				oldUser.setImageUrl(fname);
 				
 			}
 			else {
-				oldUser.setImageUrl(oldUser.getImageUrl());
+				 oldUser.setImageUrl(oldUser.getImageUrl());
+		            oldUser.setPublicId(oldUser.getPublicId());
+
 			}
 			
 			user username = this.userRepo.getUserByUserName(principal.getName());

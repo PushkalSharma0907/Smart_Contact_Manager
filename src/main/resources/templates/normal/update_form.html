@@ -49,7 +49,7 @@
 
         <!-- Image -->
         <div class="text-center">
-        <img th:src="@{'/images/' + ${contact.image}}" alt="Profile Image" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px;">
+        <img th:src="${contact.image == 'default.png' ? '/images/default.png' : contact.image}" alt="Profile Image" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px;">
         </div>
         <div class="mb-3 input-group">
             <span class="input-group-text"><i class="fa fa-image"></i></span>

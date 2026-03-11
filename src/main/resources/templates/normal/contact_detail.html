@@ -10,7 +10,7 @@
 		<h2 class="mb-4 text-center">Contact Details</h2>
 		<div class="card" th:if="${contact}">
 			<div class="card-header text-center">
-			<img  th:src="@{'/images/' + ${contact.image}}" alt="Profile Image" class="img-fluid rounded-circle " style="width: 150px; height: 150px;">
+			<img  th:src="${contact.image == 'default.png' ? '/images/default.png' : contact.image}" alt="Profile Image" class="img-fluid rounded-circle " style="width: 150px; height: 150px;">
 				<h3 class="text-center" th:text="${contact.name} + ' (' + ${contact.secondName} + ')'"></h3>
 			</div>
 			<div class="card-body">
