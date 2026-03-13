@@ -10,12 +10,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.Collections;
 
 import com.smart.smartcontactmanager.dao.userRepo;
 import com.smart.smartcontactmanager.entities.user;
@@ -26,6 +30,8 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
 
     @Autowired
     private userRepo userRepo;
+    
+   
 
 
     Logger logger = LoggerFactory.getLogger(OAuthSuccessHandler.class);
@@ -49,8 +55,13 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
             newUser.setImageUrl("default.png");
 
             userRepo.save(newUser);
+            existingUser = newUser;
+
             logger.info("New OAuth user registered: {}", email);
         }
+        
+       
+
 
         response.sendRedirect("/user/index");
     }

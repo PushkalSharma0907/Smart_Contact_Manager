@@ -6,7 +6,7 @@
 
       <!-- Title -->
       <div class="text-center mb-3">
-        <img th:src="@{'/images/'+${user.imageUrl}}" alt="Dashboard Icon" class="img-fluid rounded-circle mb-3" style="width: 200px; height: 200px;">
+        <img th:src="${user.imageUrl == 'default.png' ? '/images/default.png' : user.imageUrl}" alt="Dashboard Icon" class="img-fluid rounded-circle mb-3" style="width: 200px; height: 200px;">
         </div>
       <h2 class="text-center mb-5">
         Welcome, <span th:text="${user.name}">User</span>
@@ -38,4 +38,6 @@
 
     </div>
   </section>
+  
+  
 </html>

@@ -2,6 +2,7 @@ package com.smart.smartcontactmanager.controller;
 
 import com.smart.smartcontactmanager.dao.userRepo;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,8 +71,10 @@ public class homeController {
 	}
 	
 	@RequestMapping("/signin")
-	public String customLogin(Model model) {
+	public String customLogin(Model model , HttpSession session) {
 		model.addAttribute("title", "Login - Smart Contact Manager");
+	    model.addAttribute("message", session.getAttribute("message")); 
+	
 		return "login";
 	}
 

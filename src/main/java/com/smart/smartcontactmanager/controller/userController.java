@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ import com.smart.smartcontactmanager.dao.userRepo;
 import com.smart.smartcontactmanager.entities.contact;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
@@ -31,7 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.smart.smartcontactmanager.entities.user;
-import com.smart.smartcontactmanager.helper.message;
+
 
 @Controller
 @RequestMapping("/user")
@@ -76,6 +78,9 @@ public class userController {
 	    model.addAttribute("user", user);
 
 	}
+	
+	
+
 	
 	// dashboard home
 	@RequestMapping("/index")
