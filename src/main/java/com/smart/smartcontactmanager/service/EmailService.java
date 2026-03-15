@@ -4,6 +4,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,9 @@ public class EmailService {
 	@Autowired
 	private JavaMailSender mailSender;
 	
+	@Value("${spring.mail.properties.domain.name}")
+	private String domainName;
+	
 	public boolean sendSimpleEmail(String toEmail, String subject, String body) {
         MimeMessage message =  mailSender.createMimeMessage();
         
@@ -21,7 +25,7 @@ public class EmailService {
 		try {
 			helper = new MimeMessageHelper(message , true);
 			
-			helper.setFrom("theironfist0907@gmail.com");
+			helper.setFrom(domainName);
         	helper.setTo(toEmail);
         	helper.setSubject(subject);
         	helper.setText(body, true);

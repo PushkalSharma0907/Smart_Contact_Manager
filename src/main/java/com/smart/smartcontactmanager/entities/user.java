@@ -1,5 +1,6 @@
 package com.smart.smartcontactmanager.entities;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,10 +41,31 @@ public class user {
 	@Size(min=2,max=40,message="min 2 and max 20 letter is required")
 	private String name;
 	
+	//for storing public id of image in cloudinary
 	private String publicId;
 	
+	private String emailToken;
+	
+	private LocalDateTime emailtokenExpiry;
 	
 	
+	
+	public LocalDateTime getEmailtokenExpiry() {
+		return emailtokenExpiry;
+	}
+
+	public void setEmailtokenExpiry(LocalDateTime emailtokenExpiry) {
+		this.emailtokenExpiry = emailtokenExpiry;
+	}
+
+	public String getEmailToken() {
+		return emailToken;
+	}
+
+	public void setEmailToken(String emailToken) {
+		this.emailToken = emailToken;
+	}
+
 	public String getPublicId() {
 		return publicId;
 	}
@@ -58,7 +80,7 @@ public class user {
 	}
 	
 	public user(int id, String name, String email, String password, String role, boolean enabled, String imageUrl,
-			String about , List<contact> contacts , String publicId) {
+			String about , List<contact> contacts , String publicId , String emailToken , LocalDateTime emailtokenExpiry) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -70,6 +92,8 @@ public class user {
 		this.about = about;
 		this.contacts = contacts;
 		this.publicId = publicId;
+		this.emailToken = emailToken;
+		this.emailtokenExpiry = emailtokenExpiry;
 	}
 	public int getId() {
 		return id;

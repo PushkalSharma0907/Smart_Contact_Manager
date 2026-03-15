@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{base :: layout (~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+</head>
+<body>
+<section>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+
+                <!-- Error Card -->
+                <div class="card shadow">
+                    <div class="card-header text-center bg-danger text-white">
+                        <h3>Error Occurred</h3>
+                    </div>
+                    <div class="card-body text-center">
+
+                        <!-- Dynamic Error Message -->
+<div th:if="${message}" th:class="'alert alert-danger'" th:text="${message}"></div>
+                        <!-- Default Message -->
+                        <p th:unless="${message}">
+                            Something went wrong. Please try again later.
+                        </p>
+
+                        <!-- Helpful Links -->
+                        <div class="mt-4">
+                            <a th:href="@{/user/index}" class="btn btn-primary me-2">Go to Home</a>
+                            <a th:href="@{/signin}" class="btn btn-secondary">Login</a>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <small>&copy; Smart Contact Manager</small>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

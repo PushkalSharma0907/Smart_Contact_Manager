@@ -26,10 +26,10 @@ public class AuthFailtureHandler implements AuthenticationFailureHandler {
 
         if (exception instanceof DisabledException) {
         	
-        	Message message = new Message("Your account is disabled. Please contact support.", MessageType.red);
-            // user is disabled
-            HttpSession session = request.getSession();
-            session.setAttribute("message", message);
+//        	Message message = new Message("Your account is disabled. Please contact support.", MessageType.red);
+//            // user is disabled
+//            HttpSession session = request.getSession();
+//            session.setAttribute("message", message);
             
             System.out.println("User account is disabled: " + exception.getMessage());
 				
