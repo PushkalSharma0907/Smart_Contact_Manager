@@ -8,7 +8,9 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 @Entity
 @Table(name="USER")
 public class user {
@@ -34,7 +36,7 @@ public class user {
 	private String about;
 	
 	@OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "user")
-	@JsonBackReference
+	@JsonIgnore
 	private List<contact> contacts = new ArrayList<>();
 	
 	@NotBlank(message="name is required")

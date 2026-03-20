@@ -76,6 +76,21 @@ public class Security {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
+    
+ // ✅ Custom firewall bean
+    @Bean
+    public StrictHttpFirewall strictHttpFirewall() {
+        StrictHttpFirewall firewall = new StrictHttpFirewall();
+        firewall.setAllowUrlEncodedDoubleSlash(true); // allow encoded //
+        firewall.setAllowSemicolon(true);             // optional
+        firewall.setAllowBackSlash(true);             // optional
+        return firewall;
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.httpFirewall(strictHttpFirewall());
+    }
 
 	
 	

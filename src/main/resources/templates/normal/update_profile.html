@@ -27,7 +27,7 @@
                    
                 <!-- profile photo -->
                 <div class="text-center">
-                <img th:src="@{'/images/' + ${user.imageUrl}}" alt="Profile Image" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px;">
+                <img th:src="${user.imageUrl == 'default.png' ? '/images/default.png' : user.imageUrl}" alt="Profile Image" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px;">
                 </div>
                 <div class="mb-3 input-group">
             <span class="input-group-text"><i class="fa fa-image"></i></span>
@@ -42,7 +42,7 @@
         </div>
 
         <!-- Submit -->
-        <button type="submit" class="btn btn-primary">Save Contact</button>
+        <button type="submit" class="btn btn-primary">Update Profile</button>
     </form>
 </div>
 	

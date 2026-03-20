@@ -5,6 +5,10 @@ import javax.persistence.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 @Entity
 @Table(name="CONTACT")
@@ -37,9 +41,8 @@ public class contact {
 	}
 
 
-	@ManyToOne
-	@JsonBackReference
-
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 	private user user;
 
 	public int getCid() {

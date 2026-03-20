@@ -1,11 +1,14 @@
 package com.smart.smartcontactmanager.controller;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.smart.smartcontactmanager.entities.user;
 import com.smart.smartcontactmanager.helper.Message;
 import com.smart.smartcontactmanager.helper.MessageType;
+import com.smart.smartcontactmanager.service.UserServiceThread;
 import com.smart.smartcontactmanager.dao.userRepo;
 
 @Controller
@@ -24,9 +28,13 @@ public class AuthController {
 	@Autowired
 	private userRepo userRepo;
 	
+	@Autowired
+	@Qualifier("io")
+	private ExecutorService ioExecutor;  // for I/O-bound tasks
+	
 	@GetMapping("/verify-email")
 	public String verifyEmail(@RequestParam("token") String token, Model model, HttpSession session, 
-            HttpServletRequest request) {
+            HttpServletRequest request) throws InterruptedException, ExecutionException {
 		System.out.println("Verifying email with token: " + token);
 	    user verifiedUser = userRepo.findByEmailToken(token);
 	    if (verifiedUser != null) {
@@ -37,8 +45,11 @@ public class AuthController {
 	        System.out.println("User enabled: " + verifiedUser.isEnabled());
 	        verifiedUser.setEmailToken(null); // token expire kar do
 	        verifiedUser.setEmailtokenExpiry(null);
-
-	        userRepo.save(verifiedUser);		// update existing user with enabled true and token null
+	     // ✅ DB save in virtual thread (I/O heavy)
+            ioExecutor.submit(() -> {
+                userRepo.save(verifiedUser);
+                return null;
+            }).get();
         
             
             model.addAttribute("message", "Email verified successfully!");	       

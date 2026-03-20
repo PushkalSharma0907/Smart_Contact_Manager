@@ -1,5 +1,9 @@
 package com.smart.smartcontactmanager.service;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
+import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
@@ -15,11 +19,16 @@ public class EmailService {
 	@Autowired
 	private JavaMailSender mailSender;
 	
+	 @Resource(name = "io")
+	 private ExecutorService ioExecutor;
+
+	
 	@Value("${spring.mail.properties.domain.name}")
 	private String domainName;
 	
-	public boolean sendSimpleEmail(String toEmail, String subject, String body) {
-        MimeMessage message =  mailSender.createMimeMessage();
+	public Future<Boolean> sendSimpleEmail(String toEmail, String subject, String body) {
+       return ioExecutor.submit(() -> {
+    		   MimeMessage message =  mailSender.createMimeMessage();
         
         MimeMessageHelper helper;
 		try {
@@ -32,6 +41,8 @@ public class EmailService {
         	
         	mailSender.send(message);
         	
+        	System.out.println("Email sent successfully to " + toEmail+"via virtual thread");
+        	
         	
 		} catch (MessagingException e) {
 			
@@ -39,6 +50,6 @@ public class EmailService {
 		}
 		
 		        return true;
+	});
 	}
-
 }

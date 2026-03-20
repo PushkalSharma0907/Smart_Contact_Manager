@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
@@ -20,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Collections;
+import java.util.UUID;
 
 import com.smart.smartcontactmanager.dao.userRepo;
 import com.smart.smartcontactmanager.entities.user;
@@ -31,9 +33,9 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
     @Autowired
     private userRepo userRepo;
     
+ // ✅ Bean inject nahi, seedha instance — no circular dependency
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
    
-
-
     Logger logger = LoggerFactory.getLogger(OAuthSuccessHandler.class);
 
     @Override
@@ -43,13 +45,18 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
         DefaultOAuth2User detailUser = (DefaultOAuth2User) authentication.getPrincipal();
         String email = detailUser.getAttribute("email");
         String name = detailUser.getAttribute("name");
+        
+       
 
         user existingUser = userRepo.getUserByEmail(email);
         if (existingUser == null) {
+        	 // ✅ Naya random secret — har user ke liye alag, koi guess nahi kar sakta
+            String randomSecret = passwordEncoder.encode(UUID.randomUUID().toString());
+        	
             user newUser = new user();
             newUser.setName(name);
             newUser.setEmail(email);
-            newUser.setPassword("oauth123");
+            newUser.setPassword(randomSecret);
             newUser.setRole("ROLE_USER");
             newUser.setEnabled(true);
             newUser.setImageUrl("default.png");

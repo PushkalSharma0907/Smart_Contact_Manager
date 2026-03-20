@@ -15,11 +15,11 @@
                 <!-- Display message -->
                 <div th:if="${message}" 
                      class="alert alert-danger" 
-                     th:text="${session.message}"></div>
+                     th:text="${message}"></div>
                      
                 <div th:if="${message2}" 
                      class="alert alert-success" 
-                     th:text="${session.message2}"></div>
+                     th:text="${message2}"></div>
 
                 <!-- Verify OTP form -->
                 <form th:action="@{/verify-otp}" method="post">

@@ -1,6 +1,7 @@
 package com.smart.smartcontactmanager.controller;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -9,6 +10,9 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
@@ -17,6 +21,7 @@ import com.smart.smartcontactmanager.dao.ContactRepo;
 import com.smart.smartcontactmanager.dao.userRepo;
 import com.smart.smartcontactmanager.entities.contact;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -33,6 +39,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.smart.smartcontactmanager.entities.user;
+import com.smart.smartcontactmanager.service.ContactServiceThread;
+import com.smart.smartcontactmanager.service.RedisCacheService;
+import com.smart.smartcontactmanager.service.UserServiceThread;
+
 
 
 @Controller
@@ -46,10 +56,23 @@ public class userController {
 	private ContactRepo contactRepo;
 	
 	@Autowired
+	private UserServiceThread userServiceThread;
+	
+	@Autowired
+	private ContactServiceThread contactServiceThread;
+	
+	@Autowired
 	private PasswordEncoder passwordEncoder;
 	
 	@Autowired
 	private  Cloudinary cloudinary;
+	
+	@Autowired
+	@Qualifier("io")
+	private ExecutorService ioExecutor;
+	
+	@Autowired
+	private RedisCacheService redisCacheService;
 	
 	private String resolveEmail(Principal principal) {
 	    if (principal instanceof Authentication) {
@@ -72,9 +95,9 @@ public class userController {
 	
 	// method to add common data to response
 	@ModelAttribute
-	public void addCommonData(Model model, Principal principal) {
+	public void addCommonData(Model model, Principal principal) throws InterruptedException, ExecutionException {
 		String email = resolveEmail(principal);   // ✅ works for both direct + OAuth2
-	    user user = userRepo.getUserByEmail(email);
+		 user user = userServiceThread.getUserByEmail(email).get();
 	    model.addAttribute("user", user);
 
 	}
@@ -84,11 +107,14 @@ public class userController {
 	
 	// dashboard home
 	@RequestMapping("/index")
-	public String dashboard(Model model , Principal principal) {
+	public String dashboard(Model model , Principal principal) throws InterruptedException, ExecutionException {
 		 String email = resolveEmail(principal);
 		    user user = userRepo.getUserByEmail(email);
 
-		    List<contact> contacts = contactRepo.findContactsByUserId(user.getId(), null).getContent();
+
+		    Page<contact> contactsPage = contactServiceThread.findContactsByUserId(user.getId(), PageRequest.of(0, 5)).get();
+	        List<contact> contacts = contactsPage.getContent();
+
 		    model.addAttribute("noOfContact", contacts.size());
 		    model.addAttribute("title", "User Dashboard");
 
@@ -133,8 +159,13 @@ public class userController {
 //	            System.out.println("Image uploaded successfully");
 	            
 	            //image upload code on Cloudinary
-	            Map uploadResult = cloudinary.uploader().upload(multi.getBytes(),
-	                    ObjectUtils.asMap("folder", "contacts"));
+	         // image upload code on Cloudinary via th
+	            Future<Map> uploadFuture = ioExecutor.submit(() -> 
+	                cloudinary.uploader().upload(multi.getBytes(),
+	                    ObjectUtils.asMap("folder", "contacts"))
+	            );
+
+	            Map uploadResult = uploadFuture.get(); // wait for result
 
 	            String imageUrl = uploadResult.get("secure_url").toString();
 	            contact.setImage(imageUrl);
@@ -146,10 +177,16 @@ public class userController {
 	        }
 
 	        // ✅ ye hamesha chalega, chahe file empty ho ya na ho
-	        contact.setUser(user);
-	        user.getContacts().add(contact);
+            // ✅ DB + Redis save → virtual thread (I/O heavy)
+            
+                contact.setUser(user);
+                             
+                contact savedContact = contactRepo.save(contact); // ✅ DB returned object mein sahi cid
+                redisCacheService.saveContact(savedContact);
+                System.err.println("Contact saved to DB and Redis cache");
+               
+            
 
-	        this.userRepo.save(user);
 
 	        System.out.println("Added to database");
 	        model.addAttribute("contact", new contact());
@@ -165,19 +202,48 @@ public class userController {
 	}
 	
 	@GetMapping("/show-contacts/{pageNo}")
-	public String showContacts(@PathVariable("pageNo") Integer pageNo , Model model, Principal principal) {
+	public String showContacts(@PathVariable("pageNo") Integer pageNo , Model model, Principal principal) throws InterruptedException, ExecutionException {
 		model.addAttribute("title", "Show User Contacts");
 		 String email = resolveEmail(principal);
 		    user user = userRepo.getUserByEmail(email);
+		    
+		    List<contact> allContacts = contactRepo.findContactsByUserId(user.getId());
 		
 		
 		//current page - pageNo
 		//contact per page - 3
 		Pageable Pageable = PageRequest.of(pageNo, 3);
 		
-		Page<contact> contacts = contactRepo.findContactsByUserId(user.getId(), Pageable );
-		
-		model.addAttribute("contacts", contacts);
+		 // ✅ Try Redis first
+	    List<contact> cachedContacts = redisCacheService.getAllContacts(user.getId()).get();
+	   
+	    Page<contact> contacts;
+	    if (cachedContacts != null && !cachedContacts.isEmpty() && cachedContacts.size() == allContacts.size()  ) {
+	        // Redis hit → manual pagination
+	        int start = pageNo * 3;
+	        int end = Math.min(start + 3, cachedContacts.size());
+	        List<contact> pageList = cachedContacts.subList(start, end);
+
+	        contacts = new PageImpl<>(pageList, Pageable, cachedContacts.size());
+	        System.err.println("Contacts fetched from Redis cache");
+	    } else {
+	    	// ✅ DB fetch via ContactServiceThread
+	        contacts = contactServiceThread.findContactsByUserId(user.getId(), Pageable).get();
+	        System.err.println("Contacts fetched from DB and cached in Redis");
+	        // Redis save (I/O heavy)
+	        ioExecutor.submit(() -> {
+	            for (contact c : contacts) {
+	                redisCacheService.saveContact(c);
+	            }
+	            return null;
+	        }).get();
+
+	       
+	    }
+
+
+
+	    model.addAttribute("contacts", contacts);
 		model.addAttribute("currentPage", pageNo);
 		model.addAttribute("totalPages", contacts.getTotalPages());
 
@@ -189,20 +255,40 @@ public class userController {
 		
 		System.out.println("CID " + cid);
 		
-		
-		contact contact = this.contactRepo.findById(cid).get();
-		
-		
-
 		 String email = resolveEmail(principal);
 		    user user = userRepo.getUserByEmail(email);
+		// ✅ Pehle Redis se try karo
+	    contact contact = null;
+	    try {
+	    	  contact = redisCacheService.getContact(user.getId(), Long.valueOf(cid));
+
+	    } catch (Exception e) {
+	        System.out.println("Redis error: " + e.getMessage());
+	    }
+
+	    // Agar Redis me nahi mila to DB se fetch karo
+	    if (contact == null) {
+	        contact = this.contactRepo.findById(cid).orElse(null);
+	        if (contact != null) {
+	            // Cache warm-up
+	            try {
+	                redisCacheService.saveContact(contact);
+	            } catch (Exception e) {
+	                System.out.println("Redis save error: " + e.getMessage());
+	            }
+	        }
+	    }
+		
+	
+		
 		
 		if (contact == null) {
 			model.addAttribute("title", "Contact Not Found");
 			model.addAttribute("message","Contact not found");
 		}
 		
-		if (user.getId() == contact.getUser().getId()) {
+		if (contact != null && contact.getUser() != null 
+		        && user.getId() == contact.getUser().getId()) {
 			model.addAttribute("contact", contact);
 			model.addAttribute("title", contact.getName());
 			model.addAttribute("currentPage", page);
@@ -217,20 +303,40 @@ public class userController {
 		
 		System.out.println("CID " + cid);
 		
+		String email = resolveEmail(principal);
+	    user user = userRepo.getUserByEmail(email);
+	    
+		 // ✅ Pehle Redis se try karo
+	    contact contact = null;
+	    try {
+	    	  contact = redisCacheService.getContact(user.getId(), Long.valueOf(cid));
+	    } catch (Exception e) {
+	        System.out.println("Redis error: " + e.getMessage());
+	    }
+
+	    // Agar Redis me nahi mila to DB se fetch karo
+	    if (contact == null) {
+	        contact = this.contactRepo.findById(cid).orElse(null);
+	        if (contact != null) {
+	            // Cache warm-up
+	            try {
+	                redisCacheService.saveContact(contact);
+	            } catch (Exception e) {
+	                System.out.println("Redis save error: " + e.getMessage());
+	            }
+	        }
+	    }
+
 		
-		contact contact = this.contactRepo.findById(cid).get();
-		
-		
-		
-		 String email = resolveEmail(principal);
-		    user user = userRepo.getUserByEmail(email);
+		 
 		
 		if (contact == null) {
 			model.addAttribute("title", "Contact Not Found");
 			model.addAttribute("message","Contact not found");
 		}
 		
-		if (user.getId() == contact.getUser().getId()) {
+		if (contact != null && contact.getUser() != null 
+		        && user.getId() == contact.getUser().getId()) {
 			model.addAttribute("contact", contact);
 			model.addAttribute("title", contact.getName());
 			model.addAttribute("currentPage", 0);
@@ -260,10 +366,18 @@ public class userController {
 //			file1.delete();
 			
 				 // ✅ Cloudinary delete
-                String publicId = contact.getPublicId(); // store this in DB at upload time
-                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
-                System.out.println("Image deleted from Cloudinary: " + publicId);
-	
+				 String publicId = contact.getPublicId();
+				ioExecutor.submit(() -> {
+				    try {
+						cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				    System.out.println("Image deleted from Cloudinary: " + publicId);
+				});
+				
+               
 			}
 		} catch (Exception e) {
 			System.out.println("No image found");
@@ -271,8 +385,18 @@ public class userController {
 			
 			contact.setUser(null);
 			this.contactRepo.delete(contact);
-			System.out.println("Contact deleted successfully");
+			System.err.println("Contact deleted successfully");
 		}
+		
+		 // ✅ Redis delete
+        try {
+            redisCacheService.deleteContact(user.getId(),Long.valueOf(cid));
+            System.err.println("Contact deleted from Redis cache");
+        } catch (Exception e) {
+            System.out.println("Redis delete error: " + e.getMessage());
+        }
+    
+
 
 		return "redirect:/user/show-contacts/" + page;
 	}
@@ -283,7 +407,7 @@ public class userController {
 		contact contact = this.contactRepo.findById(cid).get();
 		contact.setCid(cid);
 		model.addAttribute("contact", contact); 
-		
+		System.err.println("Contact name for update: " + contact.getName());
 		return "normal/update_form";
 	}
 	
@@ -304,8 +428,15 @@ public class userController {
 					
 					 // ✅ Cloudinary delete
 	                String publicId = oldContact.getPublicId(); 
-	                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
-	                System.out.println("Image deleted from Cloudinary: " + publicId);
+	                ioExecutor.submit(() -> {
+					    try {
+							cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					    System.out.println("Image deleted from Cloudinary: " + publicId);
+					}).get();
 	
 				}
 				// update new photo
@@ -316,10 +447,13 @@ public class userController {
 //				contact.setImage(multi.getOriginalFilename());
 				
 				 // upload new photo to Cloudinary
-				Map<String, Object> uploadResult = cloudinary.uploader().upload(
-				        multi.getBytes(),
-				        ObjectUtils.asMap("folder", "contacts")
-				);
+				 // Upload new photo to Cloudinary
+	            Future<Map<String, Object>> uploadFuture = ioExecutor.submit(() ->
+	                    cloudinary.uploader().upload(multi.getBytes(),
+	                            ObjectUtils.asMap("folder", "contacts"))
+	            );
+
+	            Map<String, Object> uploadResult = uploadFuture.get();
 
 				String imageUrl = uploadResult.get("secure_url").toString();
 				String publicId = uploadResult.get("public_id").toString();
@@ -330,15 +464,23 @@ public class userController {
 			} else {
 				contact.setImage(oldContact.getImage());       // purani image hi rakho
 			    contact.setPublicId(oldContact.getPublicId()); // purana publicId hi rakho
-
 			}
 
 			 String email = resolveEmail(principal);
 			    user user = userRepo.getUserByEmail(email);
 			contact.setUser(user);
 
-			this.contactRepo.save(contact);
+			    this.contactRepo.save(contact);
+			
 			System.out.println("Contact updated successfully");
+			
+			try {
+	            redisCacheService.saveContact(contact);
+	            System.err.println("Contact updated in Redis cache");
+	        } catch (Exception e) {
+	            System.out.println("Redis update error: " + e.getMessage());
+	        }
+
 			model.addAttribute("msg1", "Your contact is updated !!");
 
 		} catch (Exception e) {
@@ -380,10 +522,15 @@ public class userController {
 //					delFile.delete();
 					
 					// ✅ Cloudinary delete
-					String publicId = oldUser.getPublicId();
-					cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
-					System.out.println("Image deleted from Cloudinary: " + publicId);
-				}
+					ioExecutor.submit(() -> {
+					    try {
+							cloudinary.uploader().destroy(oldUser.getPublicId(), ObjectUtils.emptyMap());
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					    System.out.println("Image deleted from Cloudinary: " + oldUser.getPublicId());
+					});
 				// update new photo
 //				File file = new ClassPathResource("static/images").getFile();
 //				String fname = oldUser.getId()+"_" +multi.getOriginalFilename();
@@ -391,10 +538,13 @@ public class userController {
 //				  multi.transferTo(f);
 //				  oldUser.setImageUrl(fname);
 				// upload new photo to Cloudinary
-	            Map<String, Object> uploadResult = cloudinary.uploader().upload(
-	                    multi.getBytes(),
-	                    ObjectUtils.asMap("folder", "profiles")
-	            );
+					// ✅ Cloudinary upload
+					Future<Map<String, Object>> uploadFuture = ioExecutor.submit(() -> 
+					    cloudinary.uploader().upload(multi.getBytes(),
+					        ObjectUtils.asMap("folder", "profiles"))
+					);
+
+					Map<String, Object> uploadResult = uploadFuture.get();
 
 	            String imageUrl = uploadResult.get("secure_url").toString();
 	            String publicId = uploadResult.get("public_id").toString();
@@ -410,7 +560,7 @@ public class userController {
 		            oldUser.setPublicId(oldUser.getPublicId());
 
 			}
-			
+			}
 			user username = this.userRepo.getUserByUserName(principal.getName());
 			oldUser.setName(user.getName());
 			oldUser.setAbout(user.getAbout());

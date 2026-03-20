@@ -1,10 +1,14 @@
 package com.smart.smartcontactmanager.controller;
 
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,6 +32,10 @@ public class ForgotController {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	
+	@Autowired
+	@Qualifier("cpu")
+	private ExecutorService cpuExecutor; // for CPU-bound tasks
+	
 	@GetMapping("/forgot")
 	public String openEmailForm(Model model) {
 		model.addAttribute("title", "Forgot Password");
@@ -38,7 +46,7 @@ public class ForgotController {
 	}
 	
 	@PostMapping("/send-otp")
-	public String sendOTP(@RequestParam("email") String email, Model model, HttpSession session) {
+	public String sendOTP(@RequestParam("email") String email, Model model, HttpSession session) throws InterruptedException, ExecutionException {
 		
 		System.out.println("Email: " + email);
 		
@@ -52,11 +60,12 @@ public class ForgotController {
 		String message = "<h1>Your OTP is </h1>" + otp;
 		String toEmail = email;
 		
-		boolean flag = this.emailService.sendSimpleEmail(toEmail, subject, message);
+		Future<Boolean> result = this.emailService.sendSimpleEmail(toEmail, subject, message);
 		
 		System.out.println("OTP: " + otp);
 		
-		if(flag==true) {
+		if(result.get()) {		// wait for result if needed
+
             //otp is sent successfully
 			session.setAttribute("email", email);
 			session.setAttribute("myotp", otp);
@@ -118,7 +127,7 @@ public class ForgotController {
 	}
 		
 	@PostMapping("/change-password")
-	public String changePassword(@RequestParam("newPassword1") String newpassword1,@RequestParam("newPassword2") String newpassword2 , HttpSession session , Model model) {
+	public String changePassword(@RequestParam("newPassword1") String newpassword1,@RequestParam("newPassword2") String newpassword2 , HttpSession session , Model model) throws InterruptedException, ExecutionException {
 
 		String email = (String) session.getAttribute("email");
 		user user = this.userRepo.getUserByUserName(email);
@@ -127,7 +136,12 @@ public class ForgotController {
 			model.addAttribute("message", "Both passwords do not match !!");
 			return "password_change_form";
 		}
-		user.setPassword(this.passwordEncoder.encode(newpassword1));
+		
+		 // ✅ CPU-bound password hashing in cpuExecutor
+        Future<String> encodedFuture = cpuExecutor.submit(() -> this.passwordEncoder.encode(newpassword1));
+        String encodedPassword = encodedFuture.get(); // wait for result
+        user.setPassword(encodedPassword);
+		
 
 		this.userRepo.save(user);
 
