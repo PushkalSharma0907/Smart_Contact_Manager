@@ -128,5 +128,12 @@ public class homeController {
 	
 		return "login";
 	}
-
+	
+	
+	@RequestMapping("/error/403")
+	public String accessDenied(Model model) {
+	    model.addAttribute("title", "Access Denied");
+	    model.addAttribute("errorCode", "403");  // ← yeh zaroori hai
+	    return "error";
+	}
 }

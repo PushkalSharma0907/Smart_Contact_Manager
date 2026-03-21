@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(Content)">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title}">Admin Panel</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous">
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+
+  <style>
+    :root {
+      --admin-dark:    #0f172a;
+      --admin-darker:  #080f1e;
+      --admin-accent:  #6366f1;
+      --admin-accent2: #8b5cf6;
+      --admin-danger:  #ef4444;
+      --admin-success: #22c55e;
+      --admin-warn:    #f59e0b;
+      --admin-text:    #e2e8f0;
+      --admin-muted:   #94a3b8;
+      --sidebar-w:     240px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+
+    /* ── Sidebar ─────────────────────────────── */
+    .admin-sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--admin-dark);
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    .sidebar-brand {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .sidebar-brand h5 {
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      margin: 0;
+      letter-spacing: .3px;
+    }
+    .sidebar-brand small {
+      color: var(--admin-accent);
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sidebar-nav { padding: 16px 12px; flex: 1; }
+
+    .nav-section-label {
+      color: var(--admin-muted);
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      padding: 12px 10px 6px;
+    }
+
+    .admin-sidebar .nav-link {
+      color: #94a3b8;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: .88rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all .18s;
+      margin-bottom: 2px;
+      text-decoration: none;
+    }
+    .admin-sidebar .nav-link:hover {
+      background: rgba(99,102,241,.15);
+      color: #c7d2fe;
+    }
+    .admin-sidebar .nav-link.active {
+      background: var(--admin-accent);
+      color: #fff;
+      font-weight: 600;
+    }
+    .admin-sidebar .nav-link i { width: 18px; text-align: center; font-size: .9rem; }
+
+    .sidebar-bottom {
+      padding: 12px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .sidebar-bottom .nav-link {
+      color: #f87171;
+    }
+    .sidebar-bottom .nav-link:hover {
+      background: rgba(239,68,68,.15);
+      color: #fca5a5;
+    }
+
+    /* ── Topbar ──────────────────────────────── */
+    .admin-topbar {
+      position: fixed;
+      top: 0;
+      left: var(--sidebar-w);
+      right: 0;
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      justify-content: space-between;
+      z-index: 900;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .topbar-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #1e293b;
+    }
+    .topbar-badge {
+      background: var(--admin-accent);
+      color: white;
+      font-size: .7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    /* ── Main Content ────────────────────────── */
+    .admin-main {
+      margin-left: var(--sidebar-w);
+      padding-top: 60px;
+      min-height: 100vh;
+    }
+    .admin-content {
+      padding: 28px;
+    }
+
+    /* ── Stat Cards ──────────────────────────── */
+    .stat-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07);
+      border: 1px solid #e2e8f0;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,.1);
+    }
+    .stat-icon {
+      width: 46px; height: 46px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 14px;
+    }
+    .stat-value {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: .8rem;
+      color: #64748b;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* ── Table Card ──────────────────────────── */
+    .table-card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07);
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+    }
+    .table-card .card-header-custom {
+      padding: 18px 24px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .table-card .card-header-custom h6 {
+      font-weight: 700;
+      font-size: .95rem;
+      margin: 0;
+      color: #0f172a;
+    }
+    .table-card table thead th {
+      background: #f8fafc;
+      color: #64748b;
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 11px 16px;
+    }
+    .table-card table tbody td {
+      padding: 13px 16px;
+      font-size: .875rem;
+      color: #334155;
+      vertical-align: middle;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .table-card table tbody tr:last-child td { border-bottom: none; }
+    .table-card table tbody tr:hover td { background: #f8fafc; }
+
+    /* ── Badges ──────────────────────────────── */
+    .role-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+    .role-admin  { background: #ede9fe; color: #7c3aed; }
+    .role-user   { background: #e0f2fe; color: #0369a1; }
+    .status-on   { background: #dcfce7; color: #166534; }
+    .status-off  { background: #fee2e2; color: #991b1b; }
+
+    /* ── Action Buttons ──────────────────────── */
+    .btn-action {
+      width: 30px; height: 30px;
+      border: none;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .15s;
+    }
+    .btn-view   { background: #e0f2fe; color: #0369a1; }
+    .btn-toggle { background: #fef9c3; color: #854d0e; }
+    .btn-danger { background: #fee2e2; color: #991b1b; }
+    .btn-action:hover { opacity: .75; transform: scale(1.08); }
+
+    /* ── Responsive ──────────────────────────── */
+    @media (max-width: 768px) {
+      .admin-sidebar { width: 100%; height: auto; position: relative; }
+      .admin-topbar  { left: 0; }
+      .admin-main    { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand">
+      <small>Admin Panel</small>
+      <h5>Smart Contact Manager</h5>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a th:href="@{/admin/dashboard}"
+         th:classappend="${#strings.contains(#httpServletRequest.requestURI,'/admin/dashboard') ? ' active' : ''}"
+         class="nav-link">
+        <i class="fa-solid fa-gauge"></i> Dashboard
+      </a>
+
+      <div class="nav-section-label mt-2">Users</div>
+      <a th:href="@{/admin/users}"
+         th:classappend="${#strings.contains(#httpServletRequest.requestURI,'/admin/user') ? ' active' : ''}"
+         class="nav-link">
+        <i class="fa-solid fa-users"></i> All Users
+      </a>
+
+      <div class="nav-section-label mt-2">Site</div>
+      <a th:href="@{/user/index}" class="nav-link">
+        <i class="fa-solid fa-arrow-left"></i> Back to User Panel
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <a th:href="@{/logout}" class="nav-link">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Topbar -->
+  <header class="admin-topbar">
+    <span class="topbar-title" th:text="${title}">Admin</span>
+    <span class="topbar-badge">Admin</span>
+  </header>
+
+  <!-- Content -->
+  <main class="admin-main">
+    <div class="admin-content">
+      <div th:replace="${Content}"></div>
+    </div>
+  </main>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmYR+jYFjz+iqe/x5OwYABi6OWs"
+          crossorigin="anonymous"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+ <script>
+  // ✅ data-* attributes se URL/title/text padho — quotes clash nahi hoga
+  function confirmFromData(btn) {
+    const url   = btn.getAttribute('data-url');
+    const title = btn.getAttribute('data-title');
+    const text  = btn.getAttribute('data-text');
+    const icon  = btn.classList.contains('btn-danger') ? 'error' : 'warning';
+
+    Swal.mixin({
+      customClass: {
+        confirmButton: 'btn btn-danger me-2',
+        cancelButton:  'btn btn-secondary'
+      },
+      buttonsStyling: false
+    }).fire({
+      title: title,
+      text:  text,
+      icon:  icon,
+      showCancelButton:  true,
+      confirmButtonText: 'Yes, proceed',
+      cancelButtonText:  'Cancel',
+      reverseButtons:    true
+    }).then(r => { if (r.isConfirmed) window.location.href = url; });
+  }
+</script>
+
+</body>
+</html>

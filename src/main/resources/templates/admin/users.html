@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/base :: layout(~{::section})}">
+<head><title>Manage Users</title></head>
+<body>
+<section>
+
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h4 class="fw-bold mb-1" style="color:#0f172a;">All Users</h4>
+      <p class="text-muted mb-0" style="font-size:.85rem;">
+        <span th:text="${users.size()}">0</span> registered users
+      </p>
+    </div>
+  </div>
+
+  <!-- Search bar -->
+  <div class="table-card mb-3 p-3">
+    <input type="text" id="userSearch" class="form-control form-control-sm"
+           placeholder="Search by name or email..." oninput="filterUsers()">
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-card">
+    <div class="card-header-custom">
+      <h6>User List</h6>
+    </div>
+    <div class="table-responsive">
+      <table class="table mb-0" id="usersTable">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="u : ${users}">
+
+  <!-- Avatar + Name -->
+  <td>
+    <div class="d-flex align-items-center gap-2">
+      <img th:src="${u.imageUrl == 'default.png' ? '/images/default.png' : u.imageUrl}"
+           alt="avatar"
+           style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;">
+      <span class="fw-semibold" style="font-size:.875rem;" th:text="${u.name}"></span>
+    </div>
+  </td>
+
+  <!-- Email -->
+  <td style="color:#64748b;" th:text="${u.email}"></td>
+
+  <!-- Role Badge -->
+  <td>
+    <span th:class="${u.role == 'ROLE_ADMIN' ? 'role-badge role-admin' : 'role-badge role-user'}"
+          th:text="${u.role == 'ROLE_ADMIN' ? 'Admin' : 'User'}"></span>
+  </td>
+
+  <!-- Status Badge -->
+  <td>
+    <span th:class="${u.enabled ? 'role-badge status-on' : 'role-badge status-off'}"
+          th:text="${u.enabled ? 'Active' : 'Disabled'}"></span>
+  </td>
+
+  <!-- Actions -->
+  <td>
+    <div class="d-flex gap-1">
+
+      <!-- View -->
+      <a th:href="@{'/admin/user/'+${u.id}}"
+         class="btn-action btn-view" title="View Details">
+        <i class="fa-solid fa-eye"></i>
+      </a>
+
+      <!-- ✅ Toggle — data attributes use karo, onclick mein quotes mat rakho -->
+      <button class="btn-action btn-toggle"
+              th:data-url="@{'/admin/user/'+${u.id}+'/toggle-status'}"
+              th:data-title="${u.enabled ? 'Disable User?' : 'Enable User?'}"
+              th:data-text="${u.enabled ? 'User will be disabled.' : 'User will be able to login.'}"
+              th:title="${u.enabled ? 'Disable User' : 'Enable User'}"
+              onclick="confirmFromData(this)">
+        <i th:class="${u.enabled ? 'fa-solid fa-lock' : 'fa-solid fa-lock-open'}"></i>
+      </button>
+
+      <!-- ✅ Delete — same pattern -->
+      <button class="btn-action btn-danger"
+              th:data-url="@{'/admin/user/'+${u.id}+'/delete'}"
+              data-title="Delete User?"
+              data-text="This will permanently delete the user and all their contacts."
+              title="Delete User"
+              onclick="confirmFromData(this)">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+
+    </div>
+  </td>
+</tr>
+          <!-- Empty state -->
+          <tr th:if="${#lists.isEmpty(users)}">
+            <td colspan="5" class="text-center py-4 text-muted">No users found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function filterUsers() {
+      const q = document.getElementById('userSearch').value.toLowerCase();
+      document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+      });
+    }
+  </script>
+
+</section>
+</body>
+</html>

@@ -10,31 +10,38 @@
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-8">
+            
+             <div th:if="${errorCode == '403'}" class="card shadow">
+    <div class="card-header text-center bg-warning text-dark">
+        <h3>🚫 Access Denied</h3>
+    </div>
+    <div class="card-body text-center">
+        <h1 style="font-size:5rem; font-weight:800; color:#dc3545;">403</h1>
+        <p class="text-muted fs-5">YOU DON'T HAVE PERMISSION TO SEE THIS.</p>
+        <div class="mt-4">
+            <a th:href="@{/user/index}" class="btn btn-primary me-2">🏠 Dashboard</a>
+            <a th:href="@{/signin}" class="btn btn-secondary">🔐 Login</a>
+        </div>
+    </div>
+</div>
 
-                <!-- Error Card -->
-                <div class="card shadow">
-                    <div class="card-header text-center bg-danger text-white">
-                        <h3>Error Occurred</h3>
-                    </div>
-                    <div class="card-body text-center">
-
-                        <!-- Dynamic Error Message -->
-<div th:if="${message}" th:class="'alert alert-danger'" th:text="${message}"></div>
-                        <!-- Default Message -->
-                        <p th:unless="${message}">
-                            Something went wrong. Please try again later.
-                        </p>
-
-                        <!-- Helpful Links -->
-                        <div class="mt-4">
-                            <a th:href="@{/user/index}" class="btn btn-primary me-2">Go to Home</a>
-                            <a th:href="@{/signin}" class="btn btn-secondary">Login</a>
-                        </div>
-                    </div>
-                    <div class="card-footer text-center">
-                        <small>&copy; Smart Contact Manager</small>
-                    </div>
-                </div>
+<!-- ✅ Generic Error Block — sirf tab jab 403 NA ho -->
+<div th:unless="${errorCode == '403'}" class="card shadow">
+    <div class="card-header text-center bg-danger text-white">
+        <h3>Error Occurred</h3>
+    </div>
+    <div class="card-body text-center">
+        <div th:if="${message}" class="alert alert-danger" th:text="${message}"></div>
+        <p th:unless="${message}">Something went wrong. Please try again later.</p>
+        <div class="mt-4">
+            <a th:href="@{/user/index}" class="btn btn-primary me-2">🏠 Dashboard</a>
+            <a th:href="@{/signin}" class="btn btn-secondary">🔐 Login</a>
+        </div>
+    </div>
+    <div class="card-footer text-center">
+        <small>&copy; Smart Contact Manager</small>
+    </div>
+</div>
 
             </div>
         </div>

@@ -4,6 +4,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -16,6 +18,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
@@ -30,6 +33,9 @@ public class Security {
 
     @Autowired
     private OAuthSuccessHandler oAuthSuccessHandler;
+    
+    @Autowired
+    private CustomLoginSuccessHandler customLoginSuccessHandler;
  
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -38,6 +44,7 @@ public class Security {
     	
     	
     	.authorizeRequests()
+    			.expressionHandler(expressionHandler())
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/user/**").hasRole("USER")
                 .antMatchers("/**").permitAll()
@@ -45,17 +52,34 @@ public class Security {
                 .formLogin()
                     .loginPage("/signin")
                     .loginProcessingUrl("/dologin")
-                    .defaultSuccessUrl("/user/index")
+                    .successHandler(customLoginSuccessHandler) 
                     .failureHandler(new AuthFailtureHandler())
 
             .and()
                 .oauth2Login()
                     .loginPage("/signin")
-                    .successHandler(oAuthSuccessHandler);
+                    .successHandler(oAuthSuccessHandler)
         
+    .and()
+        .exceptionHandling()
+            .accessDeniedPage("/error/403");  // ← yeh zaroori hai
 
 
         return http.build();
+    }
+    
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
+        hierarchy.setHierarchy("ROLE_ADMIN > ROLE_USER");
+        return hierarchy;
+    }
+
+    @Bean
+    public DefaultWebSecurityExpressionHandler expressionHandler() {
+        DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
+        handler.setRoleHierarchy(roleHierarchy());
+        return handler;
     }
   
 

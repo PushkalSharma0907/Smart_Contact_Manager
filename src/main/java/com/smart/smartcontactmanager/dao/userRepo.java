@@ -16,4 +16,6 @@ public interface userRepo extends JpaRepository<user, Integer> {
 	
 	
 	public user getUserById(int id);
+	
+	 public long countByEnabled(boolean enabled);
 }

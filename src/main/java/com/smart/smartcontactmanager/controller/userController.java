@@ -14,6 +14,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import javax.servlet.http.HttpServletRequest;
+
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.smart.smartcontactmanager.config.CloudinaryConfig;
@@ -93,13 +95,25 @@ public class userController {
 	}
 
 	
-	// method to add common data to response
+	// method to add common data to response only for user
 	@ModelAttribute
-	public void addCommonData(Model model, Principal principal) throws InterruptedException, ExecutionException {
-		String email = resolveEmail(principal);   // ✅ works for both direct + OAuth2
-		 user user = userServiceThread.getUserByEmail(email).get();
-	    model.addAttribute("user", user);
+	public void addCommonData(Model model, Principal principal,
+	        HttpServletRequest request) throws InterruptedException, ExecutionException {
+		String uri = request.getRequestURI();
 
+	    // ✅ Sirf /user/** pe hi run karo
+	    if (!uri.startsWith("/user")) return;
+	    System.err.println("Adding common data for URI: " + uri);
+
+	    // ✅ Principal null check
+	    if (principal == null) {
+	    	System.err.println("Principal is null in addCommonData");
+	    	return;}
+
+	    String email = resolveEmail(principal);
+	    user user = userServiceThread.getUserByEmail(email).get();
+	    System.err.println("User fetched in addCommonData: " + user.getEmail());
+	    model.addAttribute("user", user);
 	}
 	
 	

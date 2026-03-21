@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/base :: layout(~{::section})}">
+<head><title>User Detail</title></head>
+<body>
+<section>
+
+  <div class="d-flex align-items-center gap-2 mb-4">
+    <a th:href="@{/admin/users}" class="btn btn-sm btn-outline-secondary">
+      <i class="fa-solid fa-arrow-left me-1"></i> Back
+    </a>
+    <h4 class="fw-bold mb-0 ms-1" style="color:#0f172a;">User Detail</h4>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Profile Card -->
+    <div class="col-md-4">
+      <div class="table-card p-4 text-center">
+        <img th:src="${viewUser.imageUrl == 'default.png' ? '/images/default.png' : viewUser.imageUrl}"
+             alt="avatar"
+             style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #e2e8f0;margin-bottom:12px;">
+        <h6 class="fw-bold mb-1" th:text="${viewUser.name}"></h6>
+        <p class="text-muted mb-2" style="font-size:.82rem;" th:text="${viewUser.email}"></p>
+
+        <span th:classappend="${viewUser.role == 'ROLE_ADMIN' ? 'role-admin' : 'role-user'}"
+              class="role-badge"
+              th:text="${viewUser.role == 'ROLE_ADMIN' ? 'Admin' : 'User'}"></span>
+        &nbsp;
+        <span th:classappend="${viewUser.enabled ? 'status-on' : 'status-off'}"
+              class="role-badge"
+              th:text="${viewUser.enabled ? 'Active' : 'Disabled'}"></span>
+
+        <hr class="my-3">
+        <p class="text-muted mb-0" style="font-size:.8rem;">
+          <strong>Contacts:</strong>
+          <span th:text="${contactCount}">0</span>
+        </p>
+        <p class="text-muted mb-0 mt-1" style="font-size:.8rem;">
+          <strong>User ID:</strong>
+          <span th:text="'SCMUSER' + ${viewUser.id}"></span>
+        </p>
+        <p class="text-muted mt-1" style="font-size:.8rem;" th:if="${viewUser.about != null and !#strings.isEmpty(viewUser.about)}">
+          <strong>About:</strong>
+          <span th:text="${viewUser.about}"></span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Actions Card -->
+    <div class="col-md-8">
+      <div class="table-card p-4">
+        <h6 class="fw-bold mb-3" style="color:#0f172a;">Actions</h6>
+
+        <!-- Enable / Disable -->
+        <div class="d-flex align-items-center justify-content-between p-3 mb-3 rounded"
+             style="background:#f8fafc;border:1px solid #e2e8f0;">
+          <div>
+            <div class="fw-semibold" style="font-size:.9rem;">Account Status</div>
+            <div class="text-muted" style="font-size:.8rem;"
+                 th:text="${viewUser.enabled ? 'User can currently login.' : 'User is currently disabled.'}"></div>
+          </div>
+          <button class="btn btn-sm"
+                  th:classappend="${viewUser.enabled ? 'btn-warning' : 'btn-success'}"
+                  th:text="${viewUser.enabled ? 'Disable Account' : 'Enable Account'}"
+                  th:onclick="|confirmAction('/admin/user/${viewUser.id}/toggle-status',
+                    '${viewUser.enabled ? 'Disable' : 'Enable'} User?',
+                    '${viewUser.enabled ? 'User will not be able to login.' : 'User will be able to login again.'}',
+                    'warning')|">
+          </button>
+        </div>
+
+        <!-- Change Role -->
+        <div class="p-3 mb-3 rounded" style="background:#f8fafc;border:1px solid #e2e8f0;">
+          <div class="fw-semibold mb-1" style="font-size:.9rem;">Change Role</div>
+          <div class="text-muted mb-3" style="font-size:.8rem;">
+            Current role:
+            <span th:classappend="${viewUser.role == 'ROLE_ADMIN' ? 'role-admin' : 'role-user'}"
+                  class="role-badge"
+                  th:text="${viewUser.role == 'ROLE_ADMIN' ? 'Admin' : 'User'}"></span>
+          </div>
+          <form th:action="@{'/admin/user/'+${viewUser.id}+'/change-role'}" method="post"
+                class="d-flex gap-2 align-items-center">
+            <select name="role" class="form-select form-select-sm" style="max-width:180px;">
+              <option value="ROLE_USER"
+                      th:selected="${viewUser.role == 'ROLE_USER'}">User</option>
+              <option value="ROLE_ADMIN"
+                      th:selected="${viewUser.role == 'ROLE_ADMIN'}">Admin</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary">Update Role</button>
+          </form>
+        </div>
+
+        <!-- Delete User -->
+        <div class="d-flex align-items-center justify-content-between p-3 rounded"
+             style="background:#fff5f5;border:1px solid #fecaca;">
+          <div>
+            <div class="fw-semibold" style="font-size:.9rem;color:#991b1b;">Delete User</div>
+            <div style="font-size:.8rem;color:#b91c1c;">
+              Permanently deletes user and all their contacts.
+            </div>
+          </div>
+          <button class="btn btn-sm btn-danger"
+                  th:onclick="|confirmAction('/admin/user/${viewUser.id}/delete',
+                    'Delete User?',
+                    'This cannot be undone. All contacts will also be deleted.',
+                    'error')|">
+            <i class="fa-solid fa-trash me-1"></i> Delete
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</section>
+</body>
+</html>

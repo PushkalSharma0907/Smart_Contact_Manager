@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/base :: layout(~{::section})}">
+<head><title>Admin Dashboard</title></head>
+<body>
+<section>
+
+  <!-- Page Heading -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h4 class="fw-bold mb-1" style="color:#0f172a;">Dashboard</h4>
+      <p class="text-muted mb-0" style="font-size:.85rem;">Overview of your application</p>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="row g-3 mb-4">
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#ede9fe;">
+          <i class="fa-solid fa-users" style="color:#7c3aed;"></i>
+        </div>
+        <div class="stat-value" th:text="${totalUsers}">0</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#dcfce7;">
+          <i class="fa-solid fa-circle-check" style="color:#16a34a;"></i>
+        </div>
+        <div class="stat-value" th:text="${activeUsers}">0</div>
+        <div class="stat-label">Active Users</div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#fee2e2;">
+          <i class="fa-solid fa-ban" style="color:#dc2626;"></i>
+        </div>
+        <div class="stat-value" th:text="${inactiveUsers}">0</div>
+        <div class="stat-label">Disabled Users</div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#e0f2fe;">
+          <i class="fa-solid fa-address-book" style="color:#0369a1;"></i>
+        </div>
+        <div class="stat-value" th:text="${totalContacts}">0</div>
+        <div class="stat-label">Total Contacts</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="table-card p-4">
+    <h6 class="fw-bold mb-3" style="color:#0f172a;">Quick Actions</h6>
+    <div class="d-flex gap-2 flex-wrap">
+      <a th:href="@{/admin/users}" class="btn btn-sm btn-primary">
+        <i class="fa-solid fa-users me-1"></i> Manage Users
+      </a>
+      <a th:href="@{/user/index}" class="btn btn-sm btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Back to User Panel
+      </a>
+    </div>
+  </div>
+
+</section>
+</body>
+</html>

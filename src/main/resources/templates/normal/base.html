@@ -62,6 +62,12 @@
     <li><a id="contact-link" th:href="@{/user/show-contacts/0}" class="nav-link item">📒 My Contacts</a></li>
     <li><a id="add-link" th:href="@{/user/add-contact}" class="nav-link item">➕ Add Contact</a></li>
     <li><a id="setting-link" th:href="@{/user/settings}" class="nav-link item">⚙️ Settings</a></li>
+    
+     <li sec:authorize="hasRole('ROLE_ADMIN')">
+          <a th:href="@{/admin/dashboard}" class="nav-link text-warning item">🛡️ Admin Panel</a>
+        </li>
+        
+        
     <li><a id="logout-link" th:href="@{/logout}" class="nav-link text-danger item">🚪 Logout</a></li>
   </ul>
 </div>

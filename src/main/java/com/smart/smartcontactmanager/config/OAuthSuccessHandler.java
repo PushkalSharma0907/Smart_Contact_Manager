@@ -26,6 +26,11 @@ import java.util.UUID;
 import com.smart.smartcontactmanager.dao.userRepo;
 import com.smart.smartcontactmanager.entities.user;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import java.util.List;
+
 
 @Component
 public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
@@ -67,9 +72,25 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
             logger.info("New OAuth user registered: {}", email);
         }
         
-       
+        // ✅ DB se role lo aur manually SecurityContext mein set karo
+        List<SimpleGrantedAuthority> authorities = List.of(
+            new SimpleGrantedAuthority(existingUser.getRole())  // ROLE_ADMIN ya ROLE_USER
+        );
 
+        // ✅ Naya authentication object banao DB role ke saath
+        UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
+            authentication.getPrincipal(),
+            authentication.getCredentials(),
+            authorities
+        );
 
-        response.sendRedirect("/user/index");
+        // ✅ SecurityContext update karo
+        SecurityContextHolder.getContext().setAuthentication(newAuth);
+
+        logger.info("OAuth login - email: {}, role: {}, authorities: {}",
+                    email, existingUser.getRole(), authorities);
+
+        boolean isAdmin = existingUser.getRole().equals("ROLE_ADMIN");
+        response.sendRedirect(isAdmin ? "/admin/dashboard" : "/user/index");
     }
 }
