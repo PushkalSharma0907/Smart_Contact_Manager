@@ -560,20 +560,49 @@ mvn spring-boot:run
 ### application.properties
 
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/scm_db
-spring.datasource.username=YOUR_USERNAME
-spring.datasource.password=YOUR_PASSWORD
-spring.jpa.hibernate.ddl-auto=update
+spring.application.name=smartcontactmanager
+server.port=8080
 
+# Database
+spring.datasource.url=jdbc:mysql://localhost:3306/smartcontact
+spring.datasource.username=root
+spring.datasource.password=yourpassword
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+
+
+# Redis
 spring.redis.host=localhost
 spring.redis.port=6379
 
+# Mail
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
-spring.mail.username=YOUR_EMAIL
-spring.mail.password=YOUR_APP_PASSWORD
+spring.mail.username=youremail@gmail.com
+spring.mail.password=your-app-password
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.domain.name=youremail@gmail.com
+
+# Cloudinary
+cloudinary.cloud.name=your-cloud-name
+cloudinary.api.key=your-api-key
+cloudinary.api.secret=your-api-secret
+
+# Google OAuth2
+spring.security.oauth2.client.registration.google.client-id=your-client-id
+spring.security.oauth2.client.registration.google.client-secret=your-client-secret
+
+# Multipart
+spring.servelet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+
+# App base URL (for email verification links)
+app.base-url=http://localhost:8080
+
 ```
 
 ---
