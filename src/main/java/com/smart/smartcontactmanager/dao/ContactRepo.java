@@ -21,4 +21,6 @@ public interface ContactRepo extends JpaRepository<contact, Integer> {
 	
 	
 	public List<contact> findContactsByNameContainingAndUser(String keyword , user user);
+	
+	public Page<contact> findAll(Pageable pageable);
 }

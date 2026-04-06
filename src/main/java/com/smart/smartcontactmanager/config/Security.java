@@ -47,6 +47,8 @@ public class Security {
     			.expressionHandler(expressionHandler())
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/user/**").hasRole("USER")
+                .antMatchers("/api/admin/**").hasRole("ADMIN")  // Admin only
+                .antMatchers("/api/**").authenticated()          // Login required
                 .antMatchers("/**").permitAll()
             .and()
                 .formLogin()
