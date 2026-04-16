@@ -2,61 +2,347 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(~{::section})}">
 <head>
 <meta charset="UTF-8">
-<title></title>
+<title>Sign Up</title>
 </head>
 <body>
 <section>
-	
-    <div class="container">
-    	<div class="row">
-    		<div class="col-md-8 offset-md-2">
-    			<div class="card mt-5">
-    				<div class="card-header text-center">
-    					<h1>Register Here</h1>
-    				</div>
-    				<div class="card-body">
-    					<form action="" th:action="@{/do_register}" method="post" th:object="${user}">
-    					<div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
-
-							
-    						<div class="mb-3">
-    							<label for="username" class="form-label">Your Name</label>
-    							<input type="text" class="form-control" id="username" placeholder="Enter here" th:field="*{name}" required>
-    							    <p th:each="e : ${#fields.errors('name')}" th:text="${e}" class="text-danger"></p>
-    							
-    						</div>
-    						<div class="mb-3">
-    						<label>Email</label>
-    <input type="email" th:field="*{email}" class="form-control" placeholder="Enter here">
-    <p th:each="e : ${#fields.errors('email')}" th:text="${e}" class="text-danger"></p>
-    							
-    						</div>
-    						<div class="mb-3">
-    							<label for="password" class="form-label">Password</label>
-    							<input type="password" class="form-control" id="password" placeholder="Enter here" th:field="*{password}" required>
-    							    <p th:if="${#fields.errors('password')}" th:errors="*{password}" class="text-danger"></p>
-    							
-    						</div>
-    						
-    						<div class="form-group">
-    						<textarea placeholder="Enter something yourself " rows="25" class="form-control" th:field="*{about}"></textarea>
-    						</div>
-    						
-    						<div class="form-group from check">
-    						<input type="checkbox" name="agreement" class="form-check-input" id="agreement" />
-    						<label for="agreement">Accept Terms and Conditions</label>
-    						<p th:if="${#fields.hasErrors('enabled')}" th:errors="*{enabled}" class="text-danger"></p>
-    						</div>
-    						<button type="submit" class="btn btn-primary w-100">Sign Up</button>
-    						<button type="reset" class="btn btn-secondary w-100 mt-2">Reset</button>
-    					</form>
-    				</div>
-    			</div>
-     
-    
+<style>
+  .signup-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+  }
+ 
+  .signup-card {
+    background: #ffffff;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 24px 64px rgba(0,0,0,.35);
+    overflow: hidden;
+    animation: slideUp .5s ease both;
+  }
+ 
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+ 
+  .signup-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+    padding: 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+ 
+  .signup-header::before {
+    content: '';
+    position: absolute;
+    width: 200px; height: 200px;
+    background: rgba(233,69,96,.15);
+    border-radius: 50%;
+    top: -60px; right: -60px;
+  }
+ 
+  .signup-header::after {
+    content: '';
+    position: absolute;
+    width: 120px; height: 120px;
+    background: rgba(255,255,255,.05);
+    border-radius: 50%;
+    bottom: -30px; left: -30px;
+  }
+ 
+  .signup-header h3 {
+    font-family: 'Space Mono', monospace;
+    color: #fff;
+    font-size: 20px;
+    margin: 0 0 6px;
+    letter-spacing: .06em;
+    position: relative;
+    z-index: 1;
+  }
+ 
+  .signup-header p {
+    color: rgba(255,255,255,.45);
+    font-size: 13px;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+  }
+ 
+  .signup-body {
+    padding: 32px;
+  }
+ 
+  .field-group {
+    margin-bottom: 18px;
+  }
+ 
+  .field-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 7px;
+  }
+ 
+  .field-group .input-wrap {
+    position: relative;
+  }
+ 
+  .field-group .input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 14px;
+    pointer-events: none;
+  }
+ 
+  .field-group input,
+  .field-group textarea {
+    width: 100%;
+    padding: 11px 14px 11px 40px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1a1a2e;
+    background: #f9fafb;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+    outline: none;
+  }
+ 
+  .field-group textarea {
+    padding-left: 40px;
+    resize: vertical;
+    min-height: 90px;
+  }
+ 
+  .field-group input:focus,
+  .field-group textarea:focus {
+    border-color: #e94560;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(233,69,96,.1);
+  }
+ 
+  .text-danger {
+    font-size: 12px;
+    color: #ef4444;
+    margin: 5px 0 0;
+    display: block;
+  }
+ 
+  .alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+  }
+ 
+  .alert-danger {
+    background: #fee2e2;
+    color: #991b1b;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+  }
+ 
+  .checkbox-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 22px;
+    padding: 14px;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 1.5px solid #e5e7eb;
+  }
+ 
+  .checkbox-wrap input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    accent-color: #e94560;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+ 
+  .checkbox-wrap label {
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    line-height: 1.5;
+  }
+ 
+  .checkbox-wrap label a {
+    color: #e94560;
+    text-decoration: none;
+    font-weight: 600;
+  }
+ 
+  .btn-signup {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #e94560, #c73652);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    transition: all .2s;
+    letter-spacing: .02em;
+    margin-bottom: 10px;
+  }
+ 
+  .btn-signup:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(233,69,96,.35);
+  }
+ 
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    background: transparent;
+    color: #6b7280;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    transition: all .2s;
+  }
+ 
+  .btn-reset:hover {
+    background: #f9fafb;
+    color: #374151;
+  }
+ 
+  .signup-footer {
+    text-align: center;
+    padding: 18px 32px 24px;
+    border-top: 1px solid #f3f4f6;
+    font-size: 13px;
+    color: #6b7280;
+  }
+ 
+  .signup-footer a {
+    color: #e94560;
+    text-decoration: none;
+    font-weight: 700;
+  }
+ 
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+ 
+  .divider hr { flex: 1; border: none; border-top: 1px solid #e5e7eb; }
+  .divider span { font-size: 12px; color: #9ca3af; white-space: nowrap; }
+</style>
+ 
+<div class="signup-wrapper">
+  <div class="signup-card">
+ 
+    <!-- Header -->
+    <div class="signup-header">
+      <h3>Create Account</h3>
+      <p>Join Smart Contact Manager today</p>
+    </div>
+ 
+    <!-- Body -->
+    <div class="signup-body">
+ 
+      <!-- Messages -->
+      <div th:if="${message}" class="alert-success" th:text="${message}"></div>
+ 
+      <form th:action="@{/do_register}" method="post" th:object="${user}">
+ 
+        <!-- Name -->
+        <div class="field-group">
+          <label>Full Name</label>
+          <div class="input-wrap">
+            <i class="fas fa-user input-icon"></i>
+            <input type="text" th:field="*{name}" placeholder="Enter your full name" required>
+          </div>
+          <p th:each="e : ${#fields.errors('name')}" th:text="${e}" class="text-danger"></p>
+        </div>
+ 
+        <!-- Email -->
+        <div class="field-group">
+          <label>Email Address</label>
+          <div class="input-wrap">
+            <i class="fas fa-envelope input-icon"></i>
+            <input type="email" th:field="*{email}" placeholder="you@example.com" required>
+          </div>
+          <p th:each="e : ${#fields.errors('email')}" th:text="${e}" class="text-danger"></p>
+        </div>
+ 
+        <!-- Password -->
+        <div class="field-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <i class="fas fa-lock input-icon"></i>
+            <input type="password" th:field="*{password}" placeholder="Min 4 characters" required>
+          </div>
+          <p th:if="${#fields.errors('password')}" th:errors="*{password}" class="text-danger"></p>
+        </div>
+ 
+        <!-- About -->
+        <div class="field-group">
+          <label>About You <span style="color:#9ca3af;font-weight:400;text-transform:none;">(optional)</span></label>
+          <div class="input-wrap">
+            <i class="fas fa-align-left input-icon" style="top:18px;transform:none;"></i>
+            <textarea th:field="*{about}" placeholder="Tell us something about yourself..."></textarea>
+          </div>
+        </div>
+ 
+        <!-- Terms -->
+        <div class="checkbox-wrap">
+          <input type="checkbox" name="agreement" id="agreement">
+          <label for="agreement">
+            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+          </label>
+        </div>
+        <p th:if="${#fields.hasErrors('enabled')}" th:errors="*{enabled}" class="text-danger" style="margin-top:-14px;margin-bottom:14px;"></p>
+ 
+        <!-- Buttons -->
+        <button type="submit" class="btn-signup">
+          <i class="fas fa-user-plus" style="margin-right:8px;"></i>Create Account
+        </button>
+        <button type="reset" class="btn-reset">Clear Form</button>
+ 
+      </form>
+    </div>
+ 
+    <!-- Footer -->
+    <div class="signup-footer">
+      Already have an account? <a th:href="@{/signin}">Sign in here</a>
+    </div>
+ 
   </div>
-
+</div>
+ 
 </section>
-
 </body>
 </html>
+ 
