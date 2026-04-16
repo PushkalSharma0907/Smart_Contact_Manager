@@ -3,6 +3,7 @@
 > **Important Note:** This is a pre-existing backend project built with Java 21 and Spring Boot that fulfills all core requirements of the assignment. The project was originally designed as a contact management system, but its backend architecture — user management, role-based access control, record CRUD, search, pagination, caching, validation, and error handling — directly maps to every requirement specified in this assignment. A detailed mapping is provided below.
 >
 > **GitHub:** https://github.com/PushkalSharma0907/Smart_Contact_Manager.git
+> *Deployed on : https://smart-contact-manager-2uxs.onrender.com*
 
 ---
 
@@ -71,7 +72,6 @@ src/main/java/com/smart/smartcontactmanager/
 │   └── SecurityConfig.java            # Spring Security — role-based URL access
 │
 ├── controller/
-│   ├── ContactRestController.java     # REST APIs — /api/** (primary for submission)
 │   ├── userController.java            # UI controller — Thymeleaf pages
 │   ├── homeController.java            # Public pages — home, signup, registration
 │   └── ForgotController.java          # OTP-based password reset flow
@@ -187,7 +187,7 @@ Three layers of role-based restriction are implemented:
 
 **Layer 1 — URL level (SecurityConfig.java):**
 ```java
-.antMatchers("/api/admin/**").hasRole("ADMIN")
+
 .antMatchers("/api/**").authenticated()
 .antMatchers("/user/**").authenticated()
 ```
@@ -237,129 +237,8 @@ if (contact.getUser().getId() != user.getId()) {
 
 ---
 
-#### CRUD — REST API Implementation
 
-**Create — `POST /api/contacts`:**
-```java
-contact.setUser(user);
-contact savedContact = contactRepo.save(contact);
-return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-    "message", "Contact created successfully",
-    "contact", savedContact
-));
-```
-
-**Read All — `GET /api/contacts?page=0&size=5`:**
-```java
-Page<contact> contacts = contactRepo.findContactsByUserId(
-    user.getId(), PageRequest.of(page, size));
-```
-
-**Read One — `GET /api/contacts/{cid}`:**
-```java
-contact contact = contactRepo.findById(cid).orElse(null);
-```
-
-**Update — `PUT /api/contacts/{cid}` (partial update supported):**
-```java
-if (updatedContact.getName() != null)        existing.setName(updatedContact.getName());
-if (updatedContact.getWork() != null)        existing.setWork(updatedContact.getWork());
-if (updatedContact.getDescription() != null) existing.setDescription(updatedContact.getDescription());
-contactRepo.save(existing);
-```
-
-**Delete — `DELETE /api/contacts/{cid}`:**
-```java
-contactRepo.delete(contact);
-```
-
----
-
-#### Pagination
-
-```java
-// ContactRepo.java
-Page<contact> findContactsByUserId(int userId, Pageable pageable);
-
-// Response
-{
-  "contacts": [...],
-  "currentPage": 0,
-  "totalPages": 3,
-  "totalContacts": 15
-}
-```
-
----
-
-#### Search and Filtering
-
-```java
-// GET /api/contacts/search?keyword=john
-List<contact> results = contactRepo.findContactsByNameContainingAndUser(keyword, user);
-
-// Response
-{
-  "keyword": "john",
-  "results": [...],
-  "count": 3
-}
-```
-
-**Relevant files:** `controller/ContactRestController.java`, `dao/ContactRepo.java`
-
----
-
-### 4.3 Dashboard Summary APIs
-
-**Assignment demands:** Total records, category-wise totals, recent activity.
-
----
-
-#### Implementation — `GET /api/dashboard/summary`
-
-```java
-List<contact> allContacts = contactRepo.findContactsByUserId(user.getId());
-
-// Category-wise breakdown
-Map<String, Long> categoryWise = allContacts.stream()
-    .filter(c -> c.getWork() != null && !c.getWork().isBlank())
-    .collect(Collectors.groupingBy(contact::getWork, Collectors.counting()));
-
-// Recent 5 records
-List<contact> recent = allContacts.stream().limit(5).collect(Collectors.toList());
-
-summary.put("totalContacts", allContacts.size());
-summary.put("categoryWise", categoryWise);
-summary.put("recentContacts", recent);
-```
-
-**Sample Response:**
-```json
-{
-  "totalContacts": 25,
-  "categoryWise": {
-    "Finance": 8,
-    "Legal": 5,
-    "Operations": 12
-  },
-  "recentContacts": [ "...5 most recent records..." ],
-  "userName": "Pushkal Sharma",
-  "userEmail": "user@example.com"
-}
-```
-
-| Dashboard Metric | Requirement | Implementation |
-|-----------------|-------------|---------------|
-| Total records | Total count | `allContacts.size()` |
-| Category-wise totals | Breakdown by category | `groupingBy(work).counting()` |
-| Recent activity | Latest records | `stream().limit(5)` |
-
-**Relevant file:** `controller/ContactRestController.java → /api/dashboard/summary`
-
----
-
-### 4.4 Access Control Logic
+### 4.3 Access Control Logic
 
 **Assignment demands:** Role-based behavior clearly enforced — viewers cannot modify, admins have full access.
 
@@ -378,7 +257,7 @@ Three enforcement layers are implemented — documented fully in [Section 4.1](#
 
 ---
 
-### 4.5 Validation and Error Handling
+### 4.4 Validation and Error Handling
 
 **Assignment demands:** Input validation, useful error responses, correct status codes, protection against invalid operations.
 
@@ -404,17 +283,6 @@ private String name;
 
 ---
 
-#### REST API Validation
-
-```java
-// ContactRestController.java
-if (contact.getName() == null || contact.getName().isBlank()) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(Map.of("error", "Name is required"));
-}
-```
-
----
 
 #### HTTP Status Codes
 
@@ -442,7 +310,7 @@ if (contact.getName() == null || contact.getName().isBlank()) {
 
 ---
 
-### 4.6 Data Persistence
+### 4.5 Data Persistence
 
 **Assignment demands:** Suitable persistence approach, clearly documented.
 
@@ -487,44 +355,6 @@ Cache strategy:
 
 ---
 
-## 5. REST API Reference
-
-**Base URL:** `http://localhost:8080`
-
-**Authentication:** Session-based. Login via `/dologin` — Postman automatically maintains the session cookie.
-
-### Authentication Endpoints
-
-| Method | Endpoint | Body | Description |
-|--------|---------|------|-------------|
-| `POST` | `/do_register` | `form-data: name, email, password, agreement=true` | Register new user |
-| `POST` | `/dologin` | `form-data: username, password` | Login |
-| `GET` | `/logout` | — | Logout |
-
-### Record Endpoints
-
-| Method | Endpoint | Params | Description |
-|--------|---------|--------|-------------|
-| `GET` | `/api/contacts` | `page=0&size=5` | All records paginated |
-| `GET` | `/api/contacts/{cid}` | — | Single record |
-| `POST` | `/api/contacts` | JSON body | Create record |
-| `PUT` | `/api/contacts/{cid}` | JSON body | Update record |
-| `DELETE` | `/api/contacts/{cid}` | — | Delete record |
-| `GET` | `/api/contacts/search` | `keyword=john` | Search records |
-
-### Dashboard Endpoints
-
-| Method | Endpoint | Description |
-|--------|---------|-------------|
-| `GET` | `/api/dashboard/summary` | Totals, category breakdown, recent activity |
-
-### Admin Endpoints
-
-| Method | Endpoint | Access | Description |
-|--------|---------|--------|-------------|
-| `GET` | `/api/admin/all-contacts` | `ROLE_ADMIN` only | All users' records |
-
----
 
 ## 6. Setup and Installation
 
@@ -624,55 +454,6 @@ app.base-url=http://localhost:8080
 
 ---
 
-## 7. Testing with Postman
-
-**Step 1 — Register:**
-```
-POST /do_register
-form-data: name=Test User, email=test@gmail.com, password=test123, agreement=true
-```
-
-**Step 2 — Login:**
-```
-POST /dologin
-form-data: username=test@gmail.com, password=test123
-```
-
-**Step 3 — Create record:**
-```
-POST /api/contacts
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "phone": "9876543210",
-  "work": "Finance",
-  "description": "Key finance contact"
-}
-```
-
-**Step 4 — Dashboard summary:**
-```
-GET /api/dashboard/summary
-```
-
-**Step 5 — Search:**
-```
-GET /api/contacts/search?keyword=john
-```
-
-**Step 6 — Update:**
-```
-PUT /api/contacts/1
-{ "name": "John Updated", "work": "Legal" }
-```
-
-**Step 7 — Delete:**
-```
-DELETE /api/contacts/1
-```
-
----
-
 ## 8. Assumptions and Design Decisions
 
 | Decision | Reasoning |
@@ -706,3 +487,4 @@ DELETE /api/contacts/1
 
 *Submitted by: Pushkal Sharma*
 *GitHub: https://github.com/PushkalSharma0907/Smart_Contact_Manager.git*
+*Deployed on : https://smart-contact-manager-2uxs.onrender.com*
