@@ -530,21 +530,22 @@ public class userController {
 			user oldUser = this.userRepo.getUserById(user.getId());
 			
 			if(!multi.isEmpty()) {
-				if(!oldUser.getImageUrl().equals("default.png")) {
+				 if (!oldUser.getImageUrl().equals("default.png")) {
 //					File file = new ClassPathResource("/static/images").getFile();
 //					File delFile = new File(file , oldUser.getImageUrl());
 //					delFile.delete();
 					
 					// ✅ Cloudinary delete
-					ioExecutor.submit(() -> {
-					    try {
-							cloudinary.uploader().destroy(oldUser.getPublicId(), ObjectUtils.emptyMap());
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					    System.out.println("Image deleted from Cloudinary: " + oldUser.getPublicId());
-					});
+					 String publicId = oldUser.getPublicId();
+				        ioExecutor.submit(() -> {
+				            try {
+				                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+				            } catch (IOException e) {
+				                e.printStackTrace();
+				            }
+				            System.out.println("Image deleted from Cloudinary: " + publicId);
+				        });
+				    }
 				// update new photo
 //				File file = new ClassPathResource("static/images").getFile();
 //				String fname = oldUser.getId()+"_" +multi.getOriginalFilename();
@@ -553,28 +554,25 @@ public class userController {
 //				  oldUser.setImageUrl(fname);
 				// upload new photo to Cloudinary
 					// ✅ Cloudinary upload
-					Future<Map<String, Object>> uploadFuture = ioExecutor.submit(() -> 
-					    cloudinary.uploader().upload(multi.getBytes(),
-					        ObjectUtils.asMap("folder", "profiles"))
-					);
+				 Future<Map<String, Object>> uploadFuture = ioExecutor.submit(() ->
+			        cloudinary.uploader().upload(multi.getBytes(),
+			            ObjectUtils.asMap("folder", "profiles"))
+			    );
 
-					Map<String, Object> uploadResult = uploadFuture.get();
+			    Map<String, Object> uploadResult = uploadFuture.get();
 
-	            String imageUrl = uploadResult.get("secure_url").toString();
-	            String publicId = uploadResult.get("public_id").toString();
+			    String imageUrl = uploadResult.get("secure_url").toString();
+			    String publicId = uploadResult.get("public_id").toString();
 
-	            oldUser.setImageUrl(imageUrl);   // frontend ke liye
-	            oldUser.setPublicId(publicId);   // delete/update ke liye
+			    oldUser.setImageUrl(imageUrl);
+			    oldUser.setPublicId(publicId);
 
-				
-				
+			} else {
+			    // File nahi diya — purani hi rakho
+			    oldUser.setImageUrl(oldUser.getImageUrl());
+			    oldUser.setPublicId(oldUser.getPublicId());
 			}
-			else {
-				 oldUser.setImageUrl(oldUser.getImageUrl());
-		            oldUser.setPublicId(oldUser.getPublicId());
-
-			}
-			}
+			
 			user username = this.userRepo.getUserByUserName(principal.getName());
 			oldUser.setName(user.getName());
 			oldUser.setAbout(user.getAbout());
