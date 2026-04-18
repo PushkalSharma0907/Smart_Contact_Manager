@@ -60,14 +60,14 @@
             <div class="text-muted" style="font-size:.8rem;"
                  th:text="${viewUser.enabled ? 'User can currently login.' : 'User is currently disabled.'}"></div>
           </div>
-          <button class="btn btn-sm"
-                  th:classappend="${viewUser.enabled ? 'btn-warning' : 'btn-success'}"
-                  th:text="${viewUser.enabled ? 'Disable Account' : 'Enable Account'}"
-                  th:onclick="|confirmAction('/admin/user/${viewUser.id}/toggle-status',
-                    '${viewUser.enabled ? 'Disable' : 'Enable'} User?',
-                    '${viewUser.enabled ? 'User will not be able to login.' : 'User will be able to login again.'}',
-                    'warning')|">
-          </button>
+         <button class="btn btn-sm"
+        th:classappend="${viewUser.enabled ? 'btn-warning' : 'btn-success'}"
+        th:text="${viewUser.enabled ? 'Disable Account' : 'Enable Account'}"
+        th:data-url="@{'/admin/user/'+${viewUser.id}+'/toggle-status'}"
+        th:data-title="${viewUser.enabled ? 'Disable User?' : 'Enable User?'}"
+        th:data-text="${viewUser.enabled ? 'User will not be able to login.' : 'User will be able to login again.'}"
+        onclick="confirmFromData(this)">
+</button>
         </div>
 
         <!-- Change Role -->
@@ -101,12 +101,12 @@
             </div>
           </div>
           <button class="btn btn-sm btn-danger"
-                  th:onclick="|confirmAction('/admin/user/${viewUser.id}/delete',
-                    'Delete User?',
-                    'This cannot be undone. All contacts will also be deleted.',
-                    'error')|">
-            <i class="fa-solid fa-trash me-1"></i> Delete
-          </button>
+        th:data-url="@{'/admin/user/'+${viewUser.id}+'/delete'}"
+        data-title="Delete User?"
+        data-text="This cannot be undone. All contacts will also be deleted."
+        onclick="confirmFromData(this)">
+  <i class="fa-solid fa-trash me-1"></i> Delete
+</button>
         </div>
 
       </div>
